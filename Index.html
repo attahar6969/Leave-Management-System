@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= company ?> - Leave Management</title>
+<style>
+:root{--navy:#0f3d5e;--navy2:#165a8a;--bg:#f2f5f9;--line:#dbe3ec;--txt:#1f2d3a;--mut:#667788;--ok:#1b8a4b;--okb:#e4f5ea;--warn:#a86a00;--warnb:#fff3d6;--bad:#c0392b;--badb:#fdeaea;--gry:#6b7785;--gryb:#eceff3}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:14px;color:var(--txt);background:var(--bg)}
+button,input,select,textarea{font:inherit}
+#boot{padding:40px;text-align:center;color:var(--mut)}
+.top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;display:flex;align-items:center;gap:12px;padding:0 16px;height:54px}
+.brand{font-weight:700;font-size:16px;flex:1}.brand small{display:block;font-weight:400;font-size:11px;opacity:.8}
+.who{display:flex;align-items:center;gap:10px;font-size:13px}
+.chip{background:rgba(255,255,255,.18);padding:2px 8px;border-radius:10px;font-size:11px}
+.burger{display:none;background:none;border:0;color:#fff;font-size:22px;cursor:pointer}
+.lay{display:flex;min-height:calc(100vh - 54px)}
+nav#nav{width:220px;background:#fff;border-right:1px solid var(--line);padding:10px 0;flex-shrink:0}
+nav#nav a{display:block;padding:10px 18px;color:var(--txt);cursor:pointer;border-left:3px solid transparent}
+nav#nav a:hover{background:var(--bg)}nav#nav a.on{background:#e8f0f8;border-left-color:var(--navy);color:var(--navy);font-weight:600}
+nav#nav .sep{height:1px;background:var(--line);margin:8px 14px}
+main{flex:1;padding:20px;min-width:0}
+h2{margin:0 0 14px;color:var(--navy);font-size:20px}h3{margin:0 0 10px;font-size:15px;color:var(--navy)}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:12px}.g5{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.stat{background:#fff;border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:8px;padding:12px 14px}
+.stat b{display:block;font-size:24px;color:var(--navy)}.stat span{color:var(--mut);font-size:12px}
+.stat.a{border-left-color:#e0a100}.stat.g{border-left-color:var(--ok)}.stat.r{border-left-color:var(--bad)}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:#eaf0f6;color:var(--navy);text-align:left;padding:8px 10px;white-space:nowrap}td{padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#fafcfe}.num{text-align:right}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.b-PENDING{background:var(--warnb);color:var(--warn)}.b-APPROVED,.b-Active,.b-Paid{background:var(--okb);color:var(--ok)}.b-REJECTED,.b-Inactive{background:var(--badb);color:var(--bad)}.b-CANCELLED,.b-Pending,.b-Processed{background:var(--gryb);color:var(--gry)}
+.btn{background:var(--navy);color:#fff;border:0;border-radius:5px;padding:9px 16px;cursor:pointer;font-weight:600}.btn:hover{background:var(--navy2)}
+.btn.sm{padding:5px 10px;font-size:12px}.btn.ghost{background:transparent;border:1px solid currentColor;color:var(--navy)}.top .btn.ghost{color:#fff}
+.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.gr{background:var(--gry)}.btn:disabled{opacity:.6;cursor:wait}
+label.l{display:block;font-weight:600;margin:10px 0 4px;font-size:13px}.hint{color:var(--mut);font-size:12px;margin-top:3px}
+input[type=text],input[type=password],input[type=email],input[type=number],input[type=date],input[type=time],select,textarea{width:100%;padding:9px 10px;border:1px solid #b9c6d4;border-radius:5px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid #9cc4e4;border-color:var(--navy2)}input:disabled,select:disabled{background:#eef1f5}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}.bar>div{min-width:130px}
+.msg{padding:9px 12px;border-radius:5px;margin:10px 0;font-size:13px}.msg.e{background:var(--badb);color:var(--bad)}.msg.o{background:var(--okb);color:var(--ok)}.msg.i{background:#e8f0f8;color:var(--navy)}.msg.w{background:var(--warnb);color:var(--warn)}
+.login{min-height:100vh;display:flex}.lbrand{flex:1;background:linear-gradient(160deg,var(--navy),#0b2a43);color:#fff;padding:60px 48px;display:flex;flex-direction:column;justify-content:center}
+.lbrand h1{margin:0 0 8px;font-size:30px}.lbrand p{opacity:.85;max-width:380px;line-height:1.5}
+.lform{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:#fff}.lbox{width:100%;max-width:380px}
+.tabs{display:flex;border-bottom:2px solid var(--line);margin-bottom:16px}.tabs a{flex:1;text-align:center;padding:10px;cursor:pointer;color:var(--mut);font-weight:600;border-bottom:3px solid transparent;margin-bottom:-2px}.tabs a.on{color:var(--navy);border-bottom-color:var(--navy)}
+.lnk{color:var(--navy2);cursor:pointer;font-size:13px;text-decoration:underline;background:none;border:0;padding:0}
+.hb{display:flex;align-items:center;gap:8px;margin:5px 0}.hb span.t{width:110px;font-size:12px;color:var(--mut)}.hb i{display:block;height:14px;border-radius:3px;background:var(--navy2);min-width:2px}.hb em{font-style:normal;font-size:12px}
+.cols{display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:6px}.cols div.c{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;text-align:center;font-size:10px;color:var(--mut)}
+.cols div.c i{display:block;width:100%}.leg{font-size:12px;margin-top:6px}.leg i{display:inline-block;width:10px;height:10px;margin:0 4px 0 10px;border-radius:2px}
+.cCL{background:#165a8a}.cSL{background:#e0a100}.cOTHER{background:#7d5ba6}
+.pv{margin:10px 0;min-height:20px}.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:13px}.kv b{color:var(--mut);font-weight:600}
+#toast{position:fixed;right:16px;bottom:16px;z-index:99;display:flex;flex-direction:column;gap:8px}.tst{background:var(--ok);color:#fff;padding:11px 16px;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.2);max-width:360px}.tst.bad{background:var(--bad)}
+.ov{position:fixed;inset:0;background:rgba(10,25,40,.55);z-index:60;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 12px}
+.md{background:#fff;border-radius:8px;width:100%;max-width:760px;box-shadow:0 8px 30px rgba(0,0,0,.3)}.md.s{max-width:520px}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line);background:#f6f9fc;border-radius:8px 8px 0 0}.mh b{color:var(--navy);font-size:16px}.mb{padding:16px 18px}.mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.x{background:none;border:0;font-size:22px;cursor:pointer;color:var(--mut)}.ld{padding:30px;text-align:center;color:var(--mut)}.mut{color:var(--mut)}.sec{border:1px dashed #c3cfdb;border-radius:6px;padding:8px 12px;margin-top:12px;background:#fbfcfe}
+@media(max-width:760px){.burger{display:block}.who .nm{display:none}nav#nav{position:fixed;top:54px;left:-240px;bottom:0;z-index:30;transition:left .2s;width:230px}nav#nav.open{left:0;box-shadow:4px 0 14px rgba(0,0,0,.2)}main{padding:12px}.lbrand{display:none}.kv{grid-template-columns:1fr}}
+
+/* ===== MOBILE / TOUCH FIXES ===== */
+#prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:99;display:none;background:linear-gradient(90deg,#e0a100,#165a8a,#e0a100);background-size:200% 100%;animation:pg 1s linear infinite}
+@keyframes pg{to{background-position:-200% 0}}
+html{-webkit-text-size-adjust:100%}
+button,a,[data-a],select,label,input{touch-action:manipulation;-webkit-tap-highlight-color:rgba(15,61,94,.15)}
+[data-a]{cursor:pointer}
+.btn{min-height:40px}
+.burger{min-width:44px;min-height:44px}
+@media(max-width:760px){
+  input,select,textarea{font-size:16px}
+  .btn{min-height:44px}
+  .btn.sm{min-height:38px;padding:7px 12px}
+  nav#nav a{padding:14px 18px}
+  .bar>div{flex:1 1 45%;min-width:0}
+  .bar>div:last-child{flex-basis:100%}
+  .row>*{min-width:100%}
+  /* tables become cards */
+  .stk table,.stk tbody,.stk tr,.stk td{display:block;width:100%}
+  .stk tr:first-child{display:none}
+  .stk tr{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:6px 10px;background:#fff}
+  .stk td{border:0;padding:4px 0;display:flex;gap:10px;justify-content:space-between;text-align:right}
+  .stk td::before{content:attr(data-label);font-weight:600;color:var(--mut);text-align:left;flex:0 0 38%}
+  .stk td[data-label=""]::before{display:none}
+  .stk td[data-label=""]{justify-content:flex-end}
+  .stk td:empty{display:none}
+  .ov{padding:0}.md{border-radius:0;min-height:100%;max-width:100%!important}
+}
+</style>
+</head>
+<body data-company="<?= company ?>">
+<div id="prog"></div>
+<div id="boot">Loading...</div>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<script>
+(function () {
+'use strict';
+var CO = document.body.getAttribute('data-company') || 'Kisan Enterprises';
+var LT = { CL: 'Casual Leave', SL: 'Sick Leave', OTHER: 'Other Leave' };
+var S = { role: null, token: null, user: null, cfg: {}, tab: 'emp', view: 'login', emps: [], df: {}, otp: false };
+var H = {}, PG = {}, CHG = {};
+
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function v(id) { var e = document.getElementById(id); return e ? (e.type === 'checkbox' ? e.checked : e.value) : ''; }
+function fd(s) { return s ? String(s).split('-').reverse().join('/') : ''; }
+function main(h) { $('#main').innerHTML = h; }
+function loader() { main('<div class="ld">Loading...</div>'); }
+function badge(s) { return '<span class="badge b-' + esc(s) + '">' + esc(s) + '</span>'; }
+function toast(m, bad) { var d = document.createElement('div'); d.className = 'tst' + (bad ? ' bad' : ''); d.textContent = m; $('#toast').appendChild(d); setTimeout(function () { d.remove(); }, bad ? 6500 : 3500); }
+function opts(list, sel, blank) { var h = blank ? '<option value="">' + esc(blank) + '</option>' : ''; list.forEach(function (o) { var val = o[0], lab = o[1]; h += '<option value="' + esc(val) + '"' + (String(val) === String(sel) ? ' selected' : '') + '>' + esc(lab) + '</option>'; }); return h; }
+function empOpts(sel, blank, onlyActive) { return opts(S.emps.filter(function (e) { return !onlyActive || e.status === 'Active'; }).map(function (e) { return [e.id, e.name + ' (' + e.id + ')']; }), sel, blank); }
+function typeOpts(sel, blank) { return opts([['CL', 'Casual Leave'], ['SL', 'Sick Leave'], ['OTHER', 'Other Leave']], sel, blank); }
+function tbl(heads, rows, empty, stack) { if (!rows.length) return '<div class="ld">' + esc(empty || 'No records found.') + '</div>'; return '<div class="tw' + (stack ? ' stk' : '') + '"><table><tr>' + heads.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr>' + rows.join('') + '</table></div>'; }
+function labelCells(root) {
+  $$('.stk table', root).forEach(function (t) {
+    var hs = $$('th', t).map(function (h) { return h.textContent; });
+    $$('tr', t).forEach(function (r) { $$('td', r).forEach(function (c, i) { c.setAttribute('data-label', hs[i] || ''); }); });
+  });
+}
+new MutationObserver(function () { labelCells(document); }).observe(document.body, { childList: true, subtree: true });
+function fld(label, html, hint) { return '<label class="l">' + label + '</label>' + html + (hint ? '<div class="hint">' + hint + '</div>' : ''); }
+
+/* ---------- server calls ---------- */
+var busy = 0;
+function bump(n) { busy = Math.max(0, busy + n); var b = document.getElementById('prog'); if (b) b.style.display = busy > 0 ? 'block' : 'none'; }
+function call(kind, action, payload) {
+  return new Promise(function (res, rej) {
+    if (typeof google === 'undefined' || !google.script || !google.script.run) { rej(new Error('This page must be opened from the deployed Web App link (ending in /exec).')); return; }
+    var done = false;
+    bump(1);
+    var timer = setTimeout(function () { if (done) return; done = true; bump(-1); rej(new Error('The server is taking too long. Please check your internet and try again.')); }, 45000);
+    function fin() { if (done) return false; done = true; clearTimeout(timer); bump(-1); return true; }
+    var r = google.script.run
+      .withSuccessHandler(function (x) { if (!fin()) return; if (!x) { rej(new Error('No response from the server.')); return; } if (x.ok) res(x.data); else { var e = new Error(x.error); e.code = x.code; rej(e); } })
+      .withFailureHandler(function (e) { if (!fin()) return; rej(new Error(e && e.message ? e.message : 'Server error. Please try again.')); });
+    if (kind === 'pub') r.apiPublic(action, payload || {}); else if (kind === 'emp') r.apiEmployee(action, S.token, payload || {}); else r.apiAdmin(action, S.token, payload || {});
+  });
+}
+function P(a, p) { return call('pub', a, p); } function E(a, p) { return call('emp', a, p); } function A(a, p) { return call('adm', a, p); }
+function run(btn, fn) {
+  var t = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = 'Please wait...'; }
+  return Promise.resolve().then(fn).catch(function (e) { if (e.code === 'AUTH') signOut(e.message); else toast(e.message, true); }).then(function (r) { if (btn) { btn.disabled = false; btn.textContent = t; } return r; });
+}
+
+/* ---------- events (touch-friendly) ---------- */
+function fire(e) {
+  var b = e.target.closest && e.target.closest('[data-a]');
+  var nav = $('#nav');
+  if (nav && !e.target.closest('#nav') && !e.target.closest('.burger')) nav.classList.remove('open');
+  if (!b || b.disabled) return false;
+  var f = H[b.getAttribute('data-a')];
+  if (!f) return false;
+  e.preventDefault(); f(b.dataset, b); return true;
+}
+var tStart = null, lastTouch = 0;
+document.addEventListener('touchstart', function (e) { var t = e.touches[0]; tStart = { x: t.clientX, y: t.clientY }; }, { passive: true });
+document.addEventListener('touchend', function (e) {
+  if (!tStart) return;
+  var t = e.changedTouches[0], moved = Math.abs(t.clientX - tStart.x) > 10 || Math.abs(t.clientY - tStart.y) > 10;
+  tStart = null;
+  if (!moved && fire(e)) lastTouch = Date.now();   // preventDefault stops the duplicate click
+});
+document.addEventListener('click', function (e) {
+  if (Date.now() - lastTouch < 700) return;        // already handled by touchend
+  fire(e);
+});
+document.addEventListener('change', function (e) { var b = e.target.closest('[data-ch]'); if (b && CHG[b.getAttribute('data-ch')]) CHG[b.getAttribute('data-ch')](b); });
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' || !e.target.matches('input:not([type=checkbox]):not([type=file]):not([type=date])')) return;
+  var f = e.target.closest('[data-enter]'); if (f) { var b = $('[data-a="' + f.getAttribute('data-enter') + '"]', f); if (b) b.click(); }
+});
+window.addEventListener('error', function (e) { toast('Unexpected error: ' + e.message, true); });
+
+/* ---------- modal ---------- */
+function modal(title, body, foot, small) {
+  $('#modal').innerHTML = '<div class="ov"><div class="md' + (small ? ' s' : '') + '"><div class="mh"><b>' + esc(title) + '</b><button class="x" data-a="mclose">&times;</button></div><div class="mb">' + body + '</div>' + (foot ? '<div class="mf">' + foot + '</div>' : '') + '</div></div>';
+}
+function closeModal() { $('#modal').innerHTML = ''; }
+H.mclose = closeModal;
+function ask(msg, label, cls) {
+  return new Promise(function (res) {
+    modal('Please confirm', '<p>' + esc(msg) + '</p>', '<button class="btn gr" data-a="cNo">Cancel</button><button class="btn ' + (cls || '') + '" data-a="cYes">' + esc(label || 'Yes, continue') + '</button>', true);
+    H.cNo = function () { closeModal(); res(false); }; H.cYes = function () { closeModal(); res(true); };
+  });
+}
+
+/* ---------- session ---------- */
+function save() { try { sessionStorage.setItem('kl', JSON.stringify({ role: S.role, token: S.token, user: S.user, cfg: S.cfg })); } catch (e) { } }
+function signOut(msg) {
+  S.token = null; S.role = null; S.user = null; S.emps = []; S.df = {}; S.af = {}; S.page = null; loggingOut = false;
+  try { sessionStorage.removeItem('kl'); } catch (e) { }
+  closeModal(); S.view = 'login'; S.otp = false; login(msg);
+}
+var loggingOut = false;
+H.logout = function (d, b) {
+  if (loggingOut) return;
+  loggingOut = true;
+  if (b) { b.disabled = true; b.textContent = 'Signing out...'; }
+  toast('Signing out...');
+  var k = S.role === 'emp' ? 'emp' : 'adm';
+  try { call(k, 'logout', {}).catch(function () { }); } catch (e) { }   // fire and forget, never wait for the server
+  setTimeout(function () { loggingOut = false; signOut(); }, 400);
+};
+function begin(role, r) {
+  S.role = role; S.token = r.token; S.user = role === 'emp' ? r.user : r.admin; S.cfg = r.config || {}; save(); shell();
+  if (role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
+  H.go({ p: role === 'emp' ? 'home' : 'dash' });
+}
+
+/* ---------- login ---------- */
+function login(msg) {
+  $('#boot').style.display = 'none';
+  var b = '';
+  if (S.view === 'forgot1') {
+    b = '<h2>Reset Admin password</h2><p class="mut">Enter your registered email or mobile number. A 6-digit security code is sent to the registered email address.</p><div data-enter="fSend">' + fld('Email or mobile number', '<input type="text" id="fi" autocomplete="username">') + '<div id="lm"></div><p><button class="btn" data-a="fSend" style="width:100%">Send security code</button></p></div><p><button class="lnk" data-a="toLogin">Back to sign in</button></p>';
+  } else if (S.view === 'forgot2') {
+    b = '<h2>Enter security code</h2><div class="msg i">If the details match an authorized administrator, a code has been emailed. It is valid for a short time only.</div><div data-enter="fDone">' + fld('Security code', '<input type="text" id="fc" inputmode="numeric" maxlength="6" autocomplete="one-time-code">') + fld('New password', '<input type="password" id="fp1" autocomplete="new-password">', 'Minimum 8 characters, with letters and numbers.') + fld('Confirm new password', '<input type="password" id="fp2" autocomplete="new-password">') + '<div id="lm"></div><p><button class="btn" data-a="fDone" style="width:100%">Set password</button></p></div><p><button class="lnk" data-a="toLogin">Back to sign in</button></p>';
+  } else {
+    b = '<div class="tabs"><a data-a="tab" data-v="emp" class="' + (S.tab === 'emp' ? 'on' : '') + '">Employee</a><a data-a="tab" data-v="adm" class="' + (S.tab === 'adm' ? 'on' : '') + '">Admin</a></div>';
+    if (S.tab === 'emp') {
+      b += S.otp ? '<div data-enter="eOtp"><div class="msg i">A 6-digit code was emailed to your registered email.</div>' + fld('Verification code', '<input type="text" id="lc" inputmode="numeric" maxlength="6">') + '<div id="lm"></div><p><button class="btn" data-a="eOtp" style="width:100%">Verify and sign in</button></p></div>'
+        : '<div data-enter="eLogin">' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username" placeholder="name@example.com or 10-digit mobile">', 'Use the email or mobile number registered with the company.') + '<div id="lm"></div><p><button class="btn" data-a="eLogin" style="width:100%">Sign in</button></p></div>';
+    } else {
+      b += '<div data-enter="aLogin">' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username">') + fld('Password', '<input type="password" id="lp" autocomplete="current-password">') + '<div id="lm"></div><p><button class="btn" data-a="aLogin" style="width:100%">Sign in</button></p><p><button class="lnk" data-a="toForgot">Forgot password? / First-time sign in</button></p></div>';
+    }
+  }
+  $('#app').innerHTML = '<div class="login"><div class="lbrand"><h1>' + esc(CO) + '</h1><p>Leave Management Portal. Apply for leave, track approvals and view your leave balance in one place.</p></div><div class="lform"><div class="lbox">' + b + '</div></div></div>';
+  if (msg) setLm(msg, 'w');
+}
+function setLm(t, c) { var e = $('#lm'); if (e) e.innerHTML = '<div class="msg ' + (c || 'e') + '">' + esc(t) + '</div>'; }
+H.tab = function (d) { S.tab = d.v; S.otp = false; S.view = 'login'; login(); };
+H.toForgot = function () { S.view = 'forgot1'; login(); }; H.toLogin = function () { S.view = 'login'; S.otp = false; login(); };
+H.eLogin = function (d, b) { var id = v('li'); run(b, function () { return P('employeeLogin', { identifier: id }).then(function (r) { S.ident = id; if (r.step === 'OTP') { S.otp = true; login(); } else begin('emp', r); }); }).then(function () { }); };
+H.eOtp = function (d, b) { run(b, function () { return P('employeeVerifyOtp', { identifier: S.ident, code: v('lc') }).then(function (r) { S.otp = false; begin('emp', r); }); }); };
+H.aLogin = function (d, b) { var id = v('li'), pw = v('lp'); run(b, function () { return P('adminLogin', { identifier: id, password: pw }).then(function (r) { begin('adm', r); }); }); };
+H.fSend = function (d, b) { var id = v('fi'); run(b, function () { return P('adminForgotStart', { identifier: id }).then(function () { S.ident = id; S.view = 'forgot2'; login(); }); }); };
+H.fDone = function (d, b) {
+  run(b, function () { return P('adminForgotComplete', { identifier: S.ident, code: v('fc'), newPassword: v('fp1'), confirmPassword: v('fp2') }).then(function (r) { S.view = 'login'; S.tab = 'adm'; login(); setLm(r.message, 'o'); }); });
+};
+
+/* ---------- shell ---------- */
+var EN = [['home', 'My Dashboard', '&#9632;'], ['apply', 'Apply for Leave', '&#9998;'], ['apps', 'My Applications', '&#9776;'], ['hol', 'Public Holidays', '&#9733;']];
+var AN = [['dash', 'Dashboard', '&#9632;'], ['aapps', 'Applications', '&#9776;'], ['manual', 'Manual Leave Entry', '&#9998;'], ['emps', 'Employees', '&#9787;'], ['bal', 'Balances & Ledger', '&#8721;'], ['una', 'Unauthorized Leave', '&#9888;'], ['bonus', 'Diwali Bonus', '&#9733;'], ['ahol', 'Public Holidays', '&#9728;'], ['|'], ['set', 'Settings', '&#9881;'], ['admins', 'Administrators', '&#9823;'], ['log', 'System Log', '&#9783;'], ['pwd', 'Change Password', '&#9919;']];
+function shell() {
+  var nav = S.role === 'emp' ? EN : AN;
+  $('#app').innerHTML = '<div class="top"><button class="burger" data-a="burger">&#9776;</button><div class="brand">' + esc(CO) + '<small>Leave Management</small></div><div class="who"><span class="nm">' + esc(S.user && S.user.name) + '</span><span class="chip">' + (S.role === 'emp' ? 'Employee' : 'Admin') + '</span><button class="btn sm ghost" data-a="logout">Sign out</button></div></div><div class="lay"><nav id="nav">' + nav.map(function (n) { return n[0] === '|' ? '<div class="sep"></div>' : '<a data-a="go" data-p="' + n[0] + '">' + n[2] + ' ' + n[1] + '</a>'; }).join('') + '</nav><main id="main"></main></div>';
+}
+H.burger = function () { $('#nav').classList.toggle('open'); };
+H.go = function (d) {
+  S.page = d.p; $$('#nav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-p') === d.p); }); var n = $('#nav'); if (n) n.classList.remove('open');
+  loader(); Promise.resolve().then(function () { return PG[d.p](); }).catch(function (e) { if (e.code === 'AUTH') signOut(e.message); else main('<div class="msg e">' + esc(e.message) + '</div>'); });
+};
+function reload() { H.go({ p: S.page }); }
+
+/* ======================= EMPLOYEE PAGES ======================= */
+function tableMonths(t, title, scopedNote) {
+  return '<div class="card"><h3>' + title + '</h3><div class="hint" style="margin:-6px 0 8px">' + scopedNote + '</div>' + tbl(['Month', 'Opening', 'Credited', 'Used', 'Lapsed / Expired', 'Adjust', 'Closing'], t.map(function (r) { return '<tr><td>' + r.month + '</td><td class="num">' + r.opening + '</td><td class="num">' + r.credit + '</td><td class="num">' + r.used + '</td><td class="num">' + r.lapsed + '</td><td class="num">' + r.adjust + '</td><td class="num"><b>' + r.closing + '</b></td></tr>'; })) + '</div>';
+}
+PG.home = function () {
+  return E('home').then(function (d) {
+    var s = d.summary;
+    main('<h2>Welcome, ' + esc(d.employee.name) + '</h2><div class="grid g5"><div class="stat"><b>' + s.CL.balance + '</b><span>Casual Leave balance' + (d.clMonthScoped ? ' (this month)' : '') + '</span></div><div class="stat a"><b>' + s.SL.balance + '</b><span>Sick Leave balance</span></div><div class="stat a"><b>' + d.counts.pending + '</b><span>Pending applications</span></div><div class="stat g"><b>' + d.counts.approved + '</b><span>Approved (' + d.year + ')</span></div><div class="stat r"><b>' + d.counts.rejected + '</b><span>Rejected (' + d.year + ')</span></div></div><p><button class="btn" data-a="go" data-p="apply">Apply for leave</button></p><div class="grid g2"><div class="card"><h3>Casual Leave ' + d.year + '</h3><div class="kv"><b>Credited</b><span>' + s.CL.credited + '</span><b>Used</b><span>' + s.CL.used + '</span><b>Lapsed</b><span>' + s.CL.lapsed + '</span></div><div class="hint">Unused Casual Leave lapses at the end of each month.</div></div><div class="card"><h3>Sick Leave ' + d.year + '</h3><div class="kv"><b>Credited</b><span>' + s.SL.credited + '</span><b>Used</b><span>' + s.SL.used + '</span><b>Expired</b><span>' + s.SL.lapsed + '</span><b>Other Leave used</b><span>' + s.OTHER.used + '</span></div><div class="hint">Unused Sick Leave carries forward within the year and expires on 31 December.</div></div></div>' +
+      tableMonths(d.tables.CL, 'Casual Leave - month-wise', d.clMonthScoped ? 'Each month is separate; unused leave lapses.' : '') + tableMonths(d.tables.SL, 'Sick Leave - month-wise', d.slMonthScoped ? '' : 'Closing balance carries forward within the year.'));
+  });
+};
+var pvSeq = 0, pvT = null;
+function newReq() { S.reqId = 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+PG.apply = function () {
+  newReq(); var u = S.user; var c = S.cfg;
+  main('<h2>Apply for Leave</h2><div class="card" style="max-width:720px"><div class="row"><div>' + fld('Employee name', '<input type="text" value="' + esc(u.name) + '" disabled>') + '</div><div>' + fld('Employee ID', '<input type="text" value="' + esc(u.id) + '" disabled>') + '</div></div>' +
+    fld('Leave type', '<select id="lt" data-ch="pv">' + typeOpts('', 'Select leave type') + '</select>', 'Casual Leave and Other Leave need at least ' + c.clNotice + ' hours notice. Sick Leave longer than ' + c.medThreshold + ' days needs a medical certificate.') +
+    fld('Leave duration', '<label><input type="radio" name="dt" value="SINGLE" checked data-ch="pv"> Single day</label> &nbsp; <label><input type="radio" name="dt" value="MULTI" data-ch="pv"> Multiple days</label>') +
+    '<div class="row"><div>' + fld('<span id="fl">Leave date</span>', '<input type="date" id="fd" data-ch="pv">') + '</div><div id="tw" style="display:none">' + fld('To date', '<input type="date" id="td" data-ch="pv">') + '</div></div>' +
+    '<div id="pv" class="pv"></div>' + fld('Reason', '<textarea id="rs" rows="3" maxlength="500"></textarea>') +
+    '<div id="dw" style="display:none">' + fld('Medical certificate (required)', '<input type="file" id="fl2" accept=".pdf,.jpg,.jpeg,.png">', 'PDF, JPG or PNG, maximum ' + c.maxUploadMb + ' MB.') + '</div>' +
+    '<label class="hb" style="align-items:flex-start;margin-top:14px"><input type="checkbox" id="dc"> <span>I declare that the information given is true and I understand that this leave is subject to Admin approval.</span></label><p><button class="btn" data-a="submit">Submit application</button></p></div>');
+};
+CHG.pv = function () {
+  var multi = $('input[name=dt]:checked').value === 'MULTI'; $('#tw').style.display = multi ? '' : 'none'; $('#fl').textContent = multi ? 'From date' : 'Leave date';
+  clearTimeout(pvT); var n = ++pvSeq;
+  if (!v('lt') || !v('fd') || (multi && !v('td'))) { $('#pv').innerHTML = ''; return; }
+  $('#pv').innerHTML = '<span class="mut">Checking...</span>';
+  pvT = setTimeout(function () {
+    E('preview', { leaveType: v('lt'), durationType: multi ? 'MULTI' : 'SINGLE', fromDate: v('fd'), toDate: v('td') }).then(function (r) {
+      if (n !== pvSeq) return;
+      $('#dw').style.display = r.medRequired ? '' : 'none';
+      if (r.valid) $('#pv').innerHTML = '<div class="msg o"><b>' + r.duration + ' day(s)</b>' + (r.balance || []).map(function (l) { return ' &middot; ' + esc(l.label) + ': needs ' + l.need + (l.future ? ' (balance checked at approval)' : ', available ' + l.avail); }).join('') + '</div>';
+      else $('#pv').innerHTML = '<div class="msg e">' + esc(r.message) + '</div>';
+    }).catch(function (e) { if (e.code === 'AUTH') signOut(e.message); });
+  }, 350);
+};
+H.submit = function (d, b) {
+  var multi = $('input[name=dt]:checked').value === 'MULTI', f = $('#fl2') && $('#fl2').files[0], needDoc = $('#dw').style.display !== 'none';
+  var p = { leaveType: v('lt'), durationType: multi ? 'MULTI' : 'SINGLE', fromDate: v('fd'), toDate: v('td'), reason: v('rs'), declaration: v('dc'), requestId: S.reqId };
+  if (!p.declaration) { toast('Please tick the declaration.', true); return; }
+  if (needDoc && !f) { toast('Please attach the medical certificate.', true); return; }
+  run(b, function () {
+    var rd = f ? new Promise(function (res, rej) {
+      var ext = f.name.split('.').pop().toLowerCase();
+      if (['pdf', 'jpg', 'jpeg', 'png'].indexOf(ext) < 0) { rej(new Error('Only PDF, JPG, JPEG or PNG files are allowed.')); return; }
+      if (f.size > S.cfg.maxUploadMb * 1024 * 1024) { rej(new Error('The file is larger than ' + S.cfg.maxUploadMb + ' MB.')); return; }
+      var r = new FileReader(); r.onload = function () { res({ name: f.name, mime: f.type, data: String(r.result).split(',')[1] }); }; r.onerror = function () { rej(new Error('Could not read the file.')); }; r.readAsDataURL(f);
+    }) : Promise.resolve(null);
+    return rd.then(function (file) { if (file) p.file = file; return E('submit', p); }).then(function (r) { toast(r.message); H.go({ p: 'apps' }); });
+  });
+};
+PG.apps = function () {
+  return E('applications').then(function (l) {
+    main('<h2>My Applications</h2><div class="card">' + tbl(['ID', 'Type', 'Dates', 'Days', 'Status', 'Admin remarks', ''], l.map(function (a) {
+      return '<tr><td>' + esc(a.id) + '<div class="hint">' + esc(a.submitted) + '</div></td><td>' + LT[a.type] + '</td><td>' + a.fromD + (a.from !== a.to ? ' - ' + a.toD : '') + '</td><td class="num">' + a.duration + '</td><td>' + badge(a.status) + '</td><td>' + esc(a.remarks) + '</td><td>' + (a.status === 'PENDING' ? '<button class="btn sm bad" data-a="eCancel" data-id="' + esc(a.id) + '">Cancel</button>' : '') + '</td></tr>';
+    }), 'You have not applied for any leave yet.', true) + '</div>');
+  });
+};
+H.eCancel = function (d) { ask('Cancel application ' + d.id + '?', 'Yes, cancel it', 'bad').then(function (y) { if (y) run(null, function () { return E('cancel', { id: d.id }).then(function (r) { toast(r.message); reload(); }); }); }); };
+PG.hol = function () {
+  return E('holidays').then(function (d) {
+    main('<h2>Public Holidays ' + d.year + '</h2><div class="card"><div class="hint" style="margin-bottom:8px">Yearly allowance: ' + d.allowance + ' days. ' + esc(d.treatment) + '</div>' + tbl(['Date', 'Holiday', 'Notes'], d.list.map(function (h) { return '<tr><td>' + h.date + '</td><td>' + esc(h.name) + '</td><td>' + esc(h.notes) + '</td></tr>'; }), 'No public holidays have been configured yet.') + '</div>');
+  });
+};
+
+/* ======================= ADMIN: shared pieces ======================= */
+function leaveFields(p, x, edit) {
+  x = x || {}; var multi = x.durType === 'MULTI';
+  return '<div class="row"><div>' + (edit ? fld('Employee', '<input type="text" value="' + esc(x.empName) + '" disabled>') : fld('Employee', '<select id="' + p + 'em">' + empOpts('', 'Select employee', true) + '</select>')) + '</div><div>' + fld('Leave type', '<select id="' + p + 'lt">' + typeOpts(x.type, 'Select') + '</select>') + '</div></div>' +
+    fld('Duration', '<label><input type="radio" name="' + p + 'dt" value="SINGLE" ' + (multi ? '' : 'checked') + ' data-ch="adt" data-p="' + p + '"> Single day</label> &nbsp; <label><input type="radio" name="' + p + 'dt" value="MULTI" ' + (multi ? 'checked' : '') + ' data-ch="adt" data-p="' + p + '"> Multiple days</label>') +
+    '<div class="row"><div>' + fld('From / leave date', '<input type="date" id="' + p + 'fd" value="' + esc(x.from || '') + '">') + '</div><div id="' + p + 'tw" style="' + (multi ? '' : 'display:none') + '">' + fld('To date', '<input type="date" id="' + p + 'td" value="' + esc(x.to || '') + '">') + '</div></div>' +
+    fld('Reason', '<textarea id="' + p + 'rs" rows="2" maxlength="500">' + esc(x.reason || '') + '</textarea>') +
+    (edit ? fld('Justification for this change (mandatory)', '<input type="text" id="' + p + 'jf">') : fld('Admin remarks (mandatory)', '<input type="text" id="' + p + 'rm">')) +
+    '<div class="sec"><b>Overrides</b> <span class="hint">(only when the system asks for them)</span><label class="hb"><input type="checkbox" id="' + p + 'no"> Notice-period override (leave inside the notice window)</label><label class="hb"><input type="checkbox" id="' + p + 'nb"> Balance override (allow leave beyond balance)</label>' + fld('Override reason', '<input type="text" id="' + p + 'or">') + '</div>';
+}
+CHG.adt = function (el) { var p = el.getAttribute('data-p'); $('#' + p + 'tw').style.display = $('input[name=' + p + 'dt]:checked').value === 'MULTI' ? '' : 'none'; };
+function readLeave(p) {
+  var multi = $('input[name=' + p + 'dt]:checked').value === 'MULTI';
+  return { leaveType: v(p + 'lt'), durationType: multi ? 'MULTI' : 'SINGLE', fromDate: v(p + 'fd'), toDate: multi ? v(p + 'td') : '', reason: v(p + 'rs'), noticeOverride: v(p + 'no'), negOverride: v(p + 'nb'), overrideReason: v(p + 'or') };
+}
+function appTable(l) {
+  return tbl(['ID', 'Employee', 'Type', 'Dates', 'Days', 'Status', 'Submitted', ''], l.map(function (a) {
+    return '<tr><td>' + esc(a.id) + (a.source === 'ADMIN' ? '<div class="hint">Admin entry</div>' : '') + '</td><td>' + esc(a.empName) + '<div class="hint">' + esc(a.empId) + '</div></td><td>' + LT[a.type] + '</td><td>' + a.fromD + (a.from !== a.to ? ' - ' + a.toD : '') + '</td><td class="num">' + a.duration + '</td><td>' + badge(a.status) + '</td><td>' + esc(a.submitted) + '</td><td><button class="btn sm" data-a="open" data-id="' + esc(a.id) + '">View</button></td></tr>';
+  }), 'No applications found.', true);
+}
+function bars(obj, label) {
+  var keys = Object.keys(obj), max = Math.max.apply(null, keys.map(function (k) { return obj[k]; }).concat([1]));
+  return keys.map(function (k) { return '<div class="hb"><span class="t">' + esc(label ? label[k] : k) + '</span><i style="width:' + Math.round(obj[k] / max * 60) + '%"></i><em>' + obj[k] + '</em></div>'; }).join('');
+}
+
+/* ======================= ADMIN: dashboard ======================= */
+PG.dash = function () {
+  return Promise.all([S.emps.length ? S.emps : A('listEmployees'), A('dashboard', S.df)]).then(function (r) {
+    S.emps = r[0]; var d = r[1], c = d.cards, f = S.df;
+    var mx = Math.max.apply(null, d.monthly.map(function (m) { return m.CL + m.SL + m.OTHER; }).concat([1]));
+    var cols = d.monthly.map(function (m) { var t = m.CL + m.SL + m.OTHER; return '<div class="c"><span>' + (t || '') + '</span>' + ['OTHER', 'SL', 'CL'].map(function (k) { return m[k] ? '<i class="c' + k + '" style="height:' + (m[k] / mx * 120) + 'px"></i>' : ''; }).join('') + '<span>' + m.m + '</span></div>'; }).join('');
+    main('<h2>Admin Dashboard</h2><div class="card"><div class="bar"><div>' + fld('Year', '<select id="fy">' + opts(d.years.map(function (y) { return [y, y]; }), d.year) + '</select>') + '</div><div>' + fld('Employee', '<select id="fe">' + empOpts(f.employeeId, 'All') + '</select>') + '</div><div>' + fld('Leave type', '<select id="ft">' + typeOpts(f.leaveType, 'All') + '</select>') + '</div><div>' + fld('Status', '<select id="fs">' + opts([['PENDING', 'Pending'], ['APPROVED', 'Approved'], ['REJECTED', 'Rejected'], ['CANCELLED', 'Cancelled']], f.status, 'All') + '</select>') + '</div><div>' + fld('From date', '<input type="date" id="ff" value="' + esc(f.fromDate || '') + '">') + '</div><div>' + fld('To date', '<input type="date" id="fx" value="' + esc(f.toDate || '') + '">') + '</div><div><button class="btn" data-a="dFilter">Apply</button> <button class="btn gr" data-a="dClear">Reset</button></div></div></div>' +
+      '<div class="grid g5"><div class="stat"><b>' + c.employees + '</b><span>Active employees</span></div><div class="stat"><b>' + c.applications + '</b><span>Applications</span></div><div class="stat a"><b>' + c.pending + '</b><span>Pending</span></div><div class="stat g"><b>' + c.approved + '</b><span>Approved</span></div><div class="stat r"><b>' + c.rejected + '</b><span>Rejected</span></div><div class="stat"><b>' + c.clUsed + '</b><span>CL used (days)</span></div><div class="stat"><b>' + c.slUsed + '</b><span>SL used (days)</span></div><div class="stat g"><b>' + c.onLeave + '</b><span>On leave today</span></div><div class="stat a"><b>' + (c.diwaliCl === null ? '-' : c.diwaliCl) + '</b><span>Diwali Bonus eligible CL' + (c.diwaliCl === null ? ' (set cutoff)' : '') + '</span></div><div class="stat r"><b>' + c.unauthorized + '</b><span>Unauthorized incidents</span></div></div><br>' +
+      '<div class="grid g3"><div class="card"><h3>Application status</h3>' + bars(d.status) + '</div><div class="card"><h3>Approved leave days by type</h3>' + bars(d.typeDist, LT) + '</div><div class="card"><h3>Monthly approved leave days</h3><div class="cols">' + cols + '</div><div class="leg"><i class="cCL"></i>CL<i class="cSL"></i>SL<i class="cOTHER"></i>Other</div></div></div>' +
+      '<div class="card"><h3>Pending applications (' + d.pending.length + ')</h3>' + appTable(d.pending) + '</div><div class="card"><h3>Recent applications</h3>' + appTable(d.recent) + '</div>' +
+      '<div class="card"><h3>Employee-wise approved leave (days)</h3>' + tbl(['Employee', 'CL', 'SL', 'Other', 'Total'], d.empSummary.map(function (e) { return '<tr><td>' + esc(e.name) + ' <span class="hint">' + esc(e.id) + '</span></td><td class="num">' + e.CL + '</td><td class="num">' + e.SL + '</td><td class="num">' + e.OTHER + '</td><td class="num"><b>' + e.total + '</b></td></tr>'; }), 'No approved leave for the selected filters.') + '</div>' +
+      (d.onLeaveList.length ? '<div class="card"><h3>On leave today</h3>' + d.onLeaveList.map(function (o) { return esc(o.name) + ' (' + LT[o.type] + ')'; }).join(', ') + '</div>' : ''));
+  });
+};
+H.dFilter = function () { S.df = { year: v('fy'), employeeId: v('fe'), leaveType: v('ft'), status: v('fs'), fromDate: v('ff'), toDate: v('fx') }; reload(); };
+H.dClear = function () { S.df = {}; reload(); };
+
+/* ======================= ADMIN: applications ======================= */
+PG.aapps = function () {
+  var f = S.af || {};
+  main('<h2>Applications</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="aq" value="' + esc(f.q || '') + '" placeholder="ID, name, reason">') + '</div><div>' + fld('Employee', '<select id="ae">' + empOpts(f.employeeId, 'All') + '</select>') + '</div><div>' + fld('Type', '<select id="at">' + typeOpts(f.leaveType, 'All') + '</select>') + '</div><div>' + fld('Status', '<select id="as">' + opts([['PENDING', 'Pending'], ['APPROVED', 'Approved'], ['REJECTED', 'Rejected'], ['CANCELLED', 'Cancelled']], f.status, 'All') + '</select>') + '</div><div>' + fld('From', '<input type="date" id="af" value="' + esc(f.fromDate || '') + '">') + '</div><div>' + fld('To', '<input type="date" id="ax" value="' + esc(f.toDate || '') + '">') + '</div><div><button class="btn" data-a="aFilter">Search</button> <button class="btn gr" data-a="aClear">Reset</button></div></div><div id="alist" class="ld">Loading...</div></div>');
+  return A('listApplications', f).then(function (l) { $('#alist').className = ''; $('#alist').innerHTML = appTable(l); });
+};
+H.aFilter = function () { S.af = { q: v('aq'), employeeId: v('ae'), leaveType: v('at'), status: v('as'), fromDate: v('af'), toDate: v('ax') }; reload(); };
+H.aClear = function () { S.af = {}; reload(); };
+H.open = function (d, b) {
+  run(b, function () {
+    return A('getApplication', { id: d.id }).then(function (r) {
+      var a = r.app, s = r.summary, bal = r.balance;
+      var body = '<div class="kv"><b>Application</b><span>' + esc(a.id) + ' ' + badge(a.status) + (a.source === 'ADMIN' ? ' (Admin entry)' : '') + '</span><b>Employee</b><span>' + esc(a.empName) + ' (' + esc(a.empId) + ')</span><b>Leave type</b><span>' + LT[a.type] + '</span><b>Dates</b><span>' + a.fromD + ' to ' + a.toD + ' (' + a.duration + ' day/s)</span><b>Reason</b><span>' + esc(a.reason) + '</span><b>Submitted</b><span>' + esc(a.submitted) + '</span><b>Admin remarks</b><span>' + esc(a.remarks || '-') + '</span><b>Reviewed</b><span>' + (a.reviewedBy ? esc(a.reviewedBy) + ' on ' + esc(a.reviewedAt) : '-') + '</span>' + (a.noticeOverride || a.overrideReason ? '<b>Override</b><span>' + esc(a.noticeOverride) + ' ' + esc(a.overrideReason) + '</span>' : '') + '<b>Medical certificate</b><span>' + (a.hasDoc ? '<button class="btn sm" data-a="doc" data-id="' + esc(a.id) + '">Download / view</button>' : (r.medRequired ? '<span style="color:#c0392b">Required but missing</span>' : 'Not attached')) + '</span></div>' +
+        '<h3 style="margin-top:14px">Leave balance</h3><div class="kv"><b>Casual Leave</b><span>credited ' + s.CL.credited + ', used ' + s.CL.used + ', lapsed ' + s.CL.lapsed + ', balance ' + s.CL.balance + '</span><b>Sick Leave</b><span>credited ' + s.SL.credited + ', used ' + s.SL.used + ', balance ' + s.SL.balance + '</span></div>' + (bal && bal.lines.length ? '<div class="msg ' + (bal.ok ? 'o' : 'w') + '" style="margin-top:8px">' + (bal.ok ? 'Balance is sufficient: ' : esc(bal.message) + ' ') + bal.lines.map(function (l) { return esc(l.label) + ' needs ' + l.need + ' / available ' + l.avail; }).join('; ') + '</div>' : '') +
+        (r.ledger.length ? '<h3>Ledger entries for this application</h3>' + tbl(['Type', 'Transaction', 'Month', 'Credit', 'Debit', 'Remarks'], r.ledger.map(function (l) { return '<tr><td>' + l.type + '</td><td>' + l.tx + '</td><td>' + l.month + ' ' + l.year + '</td><td class="num">' + l.credit + '</td><td class="num">' + l.debit + '</td><td>' + esc(l.remarks) + '</td></tr>'; })) : '');
+      var foot = '';
+      if (a.status === 'PENDING') {
+        body += '<div id="ac">' + fld('Remarks (mandatory for rejection)', '<input type="text" id="mr">') + '<div class="sec"><label class="hb"><input type="checkbox" id="mo"> Override (approve beyond balance / without medical certificate)</label>' + fld('Override reason', '<input type="text" id="mor">') + '</div></div>';
+        foot = '<button class="btn gr" data-a="edit" data-id="' + esc(a.id) + '">Edit</button><button class="btn bad" data-a="reject" data-id="' + esc(a.id) + '">Reject</button><button class="btn ok" data-a="approve" data-id="' + esc(a.id) + '">Approve</button>';
+      } else if (a.status === 'APPROVED') {
+        body += fld('Reason for cancelling / reversing this approved leave', '<input type="text" id="cr">');
+        foot = '<button class="btn gr" data-a="edit" data-id="' + esc(a.id) + '">Edit</button><button class="btn bad" data-a="cancelAp" data-id="' + esc(a.id) + '">Cancel approved leave</button>';
+      }
+      S.cur = a; modal('Application ' + a.id, body, foot);
+    });
+  });
+};
+H.doc = function (d, b) {
+  run(b, function () { return A('getDocument', { id: d.id }).then(function (r) { var bin = atob(r.data), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); var url = URL.createObjectURL(new Blob([u], { type: r.mime })); var a = document.createElement('a'); a.href = url; a.download = r.name; document.body.appendChild(a); a.click(); a.remove(); }); });
+};
+H.approve = function (d, b) { run(b, function () { return A('approve', { id: d.id, remarks: v('mr'), override: v('mo'), overrideReason: v('mor') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.reject = function (d, b) { run(b, function () { return A('reject', { id: d.id, remarks: v('mr') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.cancelAp = function (d, b) { ask('Cancel this approved leave and restore the balance through reversal entries?', 'Yes, cancel leave', 'bad').then(function (y) { if (y) run(null, function () { return A('cancelApproved', { id: d.id, reason: v('cr') }).then(function (r) { toast(r.message); reload(); }); }); }); };
+H.edit = function () {
+  var a = S.cur;
+  modal('Edit ' + a.id, leaveFields('e', a, true), '<button class="btn gr" data-a="mclose">Close</button><button class="btn" data-a="eSave">Save changes</button>');
+};
+H.eSave = function (d, b) { var p = readLeave('e'); p.id = S.cur.id; p.justification = v('ejf'); run(b, function () { return A('updateLeave', p).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ======================= ADMIN: manual entry ======================= */
+PG.manual = function () {
+  return (S.emps.length ? Promise.resolve(S.emps) : A('listEmployees')).then(function (l) {
+    S.emps = l;
+    main('<h2>Manual Leave Entry</h2><div class="card" style="max-width:760px"><div class="msg i">Use this for leave inside the notice period, historical entries and corrections. Approved entries update the ledger immediately and every override is logged.</div>' + leaveFields('m', {}) + '<p><button class="btn" data-a="mSave">Record leave</button></p></div>');
+  });
+};
+H.mSave = function (d, b) { var p = readLeave('m'); p.employeeId = v('mem'); p.remarks = v('mrm'); run(b, function () { return A('manualLeave', p).then(function (r) { toast(r.message); PG.manual().then(function () { }); }); }); };
+
+/* ======================= ADMIN: employees ======================= */
+PG.emps = function () {
+  return A('listEmployees').then(function (l) {
+    S.emps = l;
+    main('<h2>Employees</h2><p><button class="btn" data-a="empForm">+ Add employee</button></p><div class="card">' + tbl(['ID', 'Name', 'Email', 'Mobile', 'Department', 'Designation', 'Joined', 'CL', 'SL', 'Status', ''], l.map(function (e) {
+      return '<tr><td>' + esc(e.id) + '</td><td>' + esc(e.name) + '</td><td>' + esc(e.email) + '</td><td>' + esc(e.phone) + '</td><td>' + esc(e.department) + '</td><td>' + esc(e.designation) + '</td><td>' + fd(e.joining) + '</td><td class="num">' + e.cl + '</td><td class="num">' + e.sl + '</td><td>' + badge(e.status) + '</td><td><button class="btn sm" data-a="empForm" data-id="' + esc(e.id) + '">Edit</button></td></tr>';
+    }), 'No employees found.', true) + '</div>');
+  });
+};
+H.empForm = function (d) {
+  var e = d.id ? S.emps.filter(function (x) { return x.id === d.id; })[0] : {}; S.editId = d.id || '';
+  modal(d.id ? 'Edit employee ' + d.id : 'Add employee', '<div class="row"><div>' + fld('Full name', '<input type="text" id="en" value="' + esc(e.name) + '">') + '</div><div>' + fld('Status', '<select id="es">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], e.status || 'Active') + '</select>') + '</div></div><div class="row"><div>' + fld('Email', '<input type="text" id="ee" value="' + esc(e.email) + '">') + '</div><div>' + fld('Mobile (10 digits)', '<input type="text" id="ep" value="' + esc(e.phone) + '">') + '</div></div><div class="row"><div>' + fld('Department', '<input type="text" id="ed" value="' + esc(e.department) + '">') + '</div><div>' + fld('Designation', '<input type="text" id="eg" value="' + esc(e.designation) + '">') + '</div></div>' + fld('Joining date', '<input type="date" id="ej" value="' + esc(e.joining) + '">', 'Employees log in with the email or mobile number saved here.'), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="empSave">Save</button>');
+};
+H.empSave = function (d, b) { run(b, function () { return A('saveEmployee', { id: S.editId, name: v('en'), status: v('es'), email: v('ee'), phone: v('ep'), department: v('ed'), designation: v('eg'), joiningDate: v('ej') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ======================= ADMIN: balances & ledger ======================= */
+PG.bal = function () {
+  var y = S.by || '';
+  return A('balanceSummary', { year: y }).then(function (d) {
+    S.by = d.year; var yrs = []; for (var i = d.year - 3; i <= d.year + 1; i++) yrs.push([i, i]);
+    main('<h2>Leave Balances & Ledger</h2><div class="bar"><div>' + fld('Year', '<select id="by" data-ch="by">' + opts(yrs, d.year) + '</select>') + '</div></div><div class="card">' + tbl(['Employee', 'CL credited', 'CL used', 'CL lapsed', 'CL balance', 'SL credited', 'SL used', 'SL expired', 'SL balance', 'Other used', ''], d.rows.map(function (r) {
+      var s = r.s; return '<tr><td>' + esc(r.name) + '<div class="hint">' + esc(r.id) + '</div></td><td class="num">' + s.CL.credited + '</td><td class="num">' + s.CL.used + '</td><td class="num">' + s.CL.lapsed + '</td><td class="num"><b>' + s.CL.balance + '</b></td><td class="num">' + s.SL.credited + '</td><td class="num">' + s.SL.used + '</td><td class="num">' + s.SL.lapsed + '</td><td class="num"><b>' + s.SL.balance + '</b></td><td class="num">' + s.OTHER.used + '</td><td><button class="btn sm" data-a="ledger" data-id="' + esc(r.id) + '">Ledger</button></td></tr>';
+    }), 'No employees found.', true) + '</div>');
+  });
+};
+CHG.by = function () { S.by = v('by'); reload(); };
+H.ledger = function (d, b) {
+  S.lid = d.id;
+  run(b, function () {
+    return A('ledger', { employeeId: d.id, year: S.by }).then(function (r) {
+      modal('Ledger - ' + d.id + ' (' + r.year + ')', tableMonths(r.tables.CL, 'Casual Leave', '') + tableMonths(r.tables.SL, 'Sick Leave', '') + '<div class="card"><h3>Transactions</h3>' + tbl(['Date', 'Type', 'Transaction', 'Month', 'Credit', 'Debit', 'Open', 'Close', 'Application', 'Remarks', 'By'], r.rows.map(function (l) {
+        return '<tr><td>' + esc(l.at) + '</td><td>' + l.type + '</td><td>' + l.tx + '</td><td>' + l.month + '</td><td class="num">' + l.credit + '</td><td class="num">' + l.debit + '</td><td class="num">' + l.opening + '</td><td class="num">' + l.closing + '</td><td>' + esc(l.app) + '</td><td>' + esc(l.remarks) + '</td><td>' + esc(l.by) + '</td></tr>';
+      })) + '</div>', '<button class="btn gr" data-a="mclose">Close</button><button class="btn" data-a="adjForm">Adjust balance</button>');
+      document.querySelector('.md').style.maxWidth = '1100px';
+    });
+  });
+};
+H.adjForm = function () {
+  var d = new Date();
+  modal('Adjust balance - ' + S.lid, '<div class="row"><div>' + fld('Leave type', '<select id="jt">' + opts([['CL', 'Casual Leave'], ['SL', 'Sick Leave']], 'CL') + '</select>') + '</div><div>' + fld('Month', '<select id="jm">' + opts(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(function (m, i) { return [i + 1, m]; }), d.getMonth() + 1) + '</select>') + '</div><div>' + fld('Year', '<input type="number" id="jy" value="' + S.by + '">') + '</div></div>' + fld('Amount (positive adds, negative deducts)', '<input type="number" step="0.5" id="ja">') + fld('Reason (mandatory)', '<input type="text" id="jr">') + '<label class="hb"><input type="checkbox" id="jo"> Allow the balance to go negative (override)</label>', '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="adjSave">Save adjustment</button>');
+};
+H.adjSave = function (d, b) { run(b, function () { return A('adjustBalance', { employeeId: S.lid, type: v('jt'), month: v('jm'), year: v('jy'), amount: v('ja'), reason: v('jr'), override: v('jo') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ======================= ADMIN: unauthorized leave ======================= */
+PG.una = function () {
+  return Promise.all([S.emps.length ? S.emps : A('listEmployees'), A('listUnauthorized')]).then(function (r) {
+    S.emps = r[0]; var d = r[1]; S.una = d.list;
+    main('<h2>Unauthorized Leave Register</h2><div class="msg w"><b>Company policy:</b> 1st: 1 day salary + Rs 800; 2nd: 1 day salary + Rs 1,000; 3rd: 1 day salary + Rs 1,500. ' + esc(d.policy) + ' The system only records incidents; it never deducts salary or terminates automatically.</div><p><button class="btn" data-a="unaForm">+ Record incident</button></p><div class="card">' + tbl(['ID', 'Employee', 'Dates', 'Days', 'Occurrence', 'Salary deduction (days)', 'Penalty (Rs)', 'Remarks', 'Action taken', ''], d.list.map(function (u) {
+      return '<tr><td>' + esc(u.id) + '</td><td>' + esc(u.name) + '<div class="hint">' + esc(u.empId) + ' - total ' + d.counts[u.empId] + '</div></td><td>' + fd(u.from) + (u.from !== u.to ? ' - ' + fd(u.to) : '') + '</td><td class="num">' + u.duration + '</td><td class="num">' + u.occ + '</td><td class="num">' + u.salary + '</td><td class="num">' + u.penalty + '</td><td>' + esc(u.remarks) + '</td><td>' + esc(u.action) + '</td><td><button class="btn sm" data-a="unaForm" data-id="' + esc(u.id) + '">Correct</button></td></tr>';
+    }), 'No unauthorized leave recorded.', true) + '</div>');
+  });
+};
+H.unaForm = function (d) {
+  var u = d.id ? S.una.filter(function (x) { return x.id === d.id; })[0] : {}; S.uid = d.id || '';
+  modal(d.id ? 'Correct incident ' + d.id : 'Record unauthorized leave', '<div class="row"><div>' + fld('Employee', '<select id="ue"' + (d.id ? ' disabled' : '') + '>' + empOpts(u.empId, 'Select employee') + '</select>') + '</div><div>' + fld('Incident date', '<input type="date" id="ui" value="' + esc(u.incident || '') + '">') + '</div></div><div class="row"><div>' + fld('From', '<input type="date" id="uf" value="' + esc(u.from || '') + '">') + '</div><div>' + fld('To', '<input type="date" id="ut" value="' + esc(u.to || '') + '">') + '</div></div><p><button class="btn sm gr" data-a="unaSuggest">Suggest penalty from policy</button></p><div id="us"></div><div class="row"><div>' + fld('Salary deduction (days)', '<input type="number" step="0.5" id="usd" value="' + esc(u.salary === undefined ? '' : u.salary) + '">') + '</div><div>' + fld('Additional penalty (Rs)', '<input type="number" id="up" value="' + esc(u.penalty === undefined ? '' : u.penalty) + '">') + '</div></div>' + fld('Admin remarks (mandatory)', '<input type="text" id="ur" value="' + esc(u.remarks || '') + '">') + fld('Action taken', '<input type="text" id="ua" value="' + esc(u.action || '') + '">') + (d.id ? fld('Reason for correction (mandatory)', '<input type="text" id="uc">') : ''), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="unaSave">Save</button>');
+};
+H.unaSuggest = function (d, b) {
+  run(b, function () { return A('suggestPenalty', { employeeId: v('ue') || (S.una.filter(function (x) { return x.id === S.uid; })[0] || {}).empId, fromDate: v('uf') || v('ui'), toDate: v('ut') || v('uf') || v('ui'), excludeId: S.uid }).then(function (r) { $('#usd').value = r.salaryDays; $('#up').value = r.penalty; $('#us').innerHTML = '<div class="msg w">Occurrence #' + r.occurrence + ', ' + r.duration + ' day(s). ' + esc(r.note) + '</div>'; }); });
+};
+H.unaSave = function (d, b) {
+  var emp = v('ue') || (S.una.filter(function (x) { return x.id === S.uid; })[0] || {}).empId;
+  run(b, function () { return A('saveUnauthorized', { id: S.uid, employeeId: emp, incidentDate: v('ui'), fromDate: v('uf') || v('ui'), toDate: v('ut') || v('uf') || v('ui'), salaryDays: v('usd'), penalty: v('up'), remarks: v('ur'), action: v('ua'), correctionReason: v('uc') }).then(function (r) { closeModal(); toast(r.message); reload(); }); });
+};
+
+/* ======================= ADMIN: Diwali bonus ======================= */
+PG.bonus = function () {
+  return A('bonusList', { year: S.byr }).then(function (d) {
+    S.byr = d.year; S.bon = d;
+    main('<h2>Diwali Bonus</h2><div class="msg i">Only Casual Leave that actually lapsed on or before the cutoff date counts. Used CL and CL not yet lapsed at the cutoff are excluded. Cutoff date, payment date and formula are set in <b>Settings &gt; Diwali Bonus</b>.</div><div class="card"><div class="bar"><div>' + fld('Bonus year', '<input type="number" id="by2" value="' + d.year + '">') + '</div><div>' + fld('Cutoff date', '<input type="date" id="bc" value="' + esc(d.cutoff) + '">') + '</div><div><button class="btn" data-a="bonusCalc">Calculate eligibility</button></div></div><div class="hint">Formula mode: ' + esc(d.mode) + (d.mode === 'PER_CL' ? ' (Rs ' + d.perCl + ' per eligible CL)' : ' (amount entered manually)') + '. Processed and Paid records are never overwritten by recalculation.</div></div><div class="card">' +
+      tbl(['Employee', 'CL lapsed before cutoff', 'Eligible CL', 'Cutoff', 'Amount (Rs)', 'Status', 'Payment date', 'Remarks', ''], d.rows.map(function (r) {
+        return '<tr><td>' + esc(r.name) + '<div class="hint">' + esc(r.empId) + '</div></td><td class="num">' + r.lapsed + '</td><td class="num"><b>' + r.eligible + '</b></td><td>' + fd(r.cutoff) + '</td><td class="num">' + esc(r.amount) + '</td><td>' + badge(r.status) + '</td><td>' + fd(r.payDate) + '</td><td>' + esc(r.remarks) + '</td><td><button class="btn sm" data-a="bonusEdit" data-id="' + esc(r.empId) + '">Update</button></td></tr>';
+      }), 'No bonus records yet. Click "Calculate eligibility".', true) + '</div>');
+  });
+};
+H.bonusCalc = function (d, b) { S.byr = v('by2'); run(b, function () { return A('bonusCompute', { year: v('by2'), cutoff: v('bc') }).then(function () { toast('Eligibility calculated.'); reload(); }); }); };
+H.bonusEdit = function (d) {
+  var r = S.bon.rows.filter(function (x) { return x.empId === d.id; })[0]; S.bid = d.id;
+  modal('Bonus - ' + r.name, '<div class="kv"><b>Eligible CL</b><span>' + r.eligible + '</span></div><div class="row"><div>' + fld('Status', '<select id="bs">' + opts([['Pending', 'Pending'], ['Processed', 'Processed'], ['Paid', 'Paid']], r.status) + '</select>') + '</div><div>' + fld('Final bonus amount (Rs)', '<input type="number" id="ba" value="' + esc(r.amount) + '">') + '</div><div>' + fld('Payment date', '<input type="date" id="bp" value="' + esc(r.payDate) + '">') + '</div></div>' + fld('Processing remarks', '<input type="text" id="br" value="' + esc(r.remarks) + '">'), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="bonusSave">Save</button>');
+};
+H.bonusSave = function (d, b) { run(b, function () { return A('bonusSave', { year: S.byr, employeeId: S.bid, status: v('bs'), amount: v('ba'), paymentDate: v('bp'), remarks: v('br') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ======================= ADMIN: holidays ======================= */
+PG.ahol = function () {
+  return A('listHolidays', { year: S.hy }).then(function (d) {
+    S.hy = d.year; S.hl = d.list;
+    main('<h2>Public Holidays</h2><div class="msg i">Allowance: <b>' + d.allowance + '</b> days per year (configured: ' + d.active + '). ' + esc(d.treatment) + ' Holidays are not deducted from CL/SL.</div><div class="bar"><div>' + fld('Year', '<input type="number" id="hy" value="' + d.year + '">') + '</div><div><button class="btn gr" data-a="hyGo">Show</button> <button class="btn" data-a="holForm">+ Add holiday</button></div></div><div class="card">' + tbl(['Date', 'Holiday', 'Status', 'Notes', ''], d.list.map(function (h) { return '<tr><td>' + h.dateD + '</td><td>' + esc(h.name) + '</td><td>' + badge(h.status) + '</td><td>' + esc(h.notes) + '</td><td><button class="btn sm" data-a="holForm" data-d="' + h.date + '">Edit</button></td></tr>'; }), 'No holidays configured for this year.') + '</div>');
+  });
+};
+H.hyGo = function () { S.hy = v('hy'); reload(); };
+H.holForm = function (d) {
+  var h = d.d ? S.hl.filter(function (x) { return x.date === d.d; })[0] : {};
+  modal(d.d ? 'Edit holiday' : 'Add holiday', '<div class="row"><div>' + fld('Date', '<input type="date" id="hd" value="' + esc(h.date || '') + '"' + (d.d ? ' disabled' : '') + '>') + '</div><div>' + fld('Status', '<select id="hs">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], h.status || 'Active') + '</select>') + '</div></div>' + fld('Holiday name', '<input type="text" id="hn" value="' + esc(h.name || '') + '">') + fld('Notes', '<input type="text" id="ho" value="' + esc(h.notes || '') + '">'), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="holSave" data-d="' + esc(d.d || '') + '">Save</button>');
+};
+H.holSave = function (d, b) { run(b, function () { return A('saveHoliday', { date: d.d || v('hd'), name: v('hn'), status: v('hs'), notes: v('ho') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ======================= ADMIN: settings ======================= */
+function friendly(k) { return k.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
+function ctl(it) {
+  var id = 's_' + it.key, dis = (it.locked || it.type === 'readonly') ? ' disabled' : '', val = String(it.value), base = ' id="' + id + '" data-k="' + it.key + '" data-o="' + esc(val) + '"' + dis;
+  if (it.type === 'bool') { var on = val.toUpperCase() === 'TRUE'; return '<select' + base + '><option value="TRUE"' + (on ? ' selected' : '') + '>Yes</option><option value="FALSE"' + (on ? '' : ' selected') + '>No</option></select>'; }
+  if (it.type.indexOf('select:') === 0) return '<select' + base + '>' + opts(it.type.slice(7).split('|').map(function (x) { return [x, x]; }), val) + '</select>';
+  if (it.type === 'number') return '<input type="number" step="any"' + base + ' value="' + esc(val) + '">';
+  if (it.type === 'date') return '<input type="date"' + base + ' value="' + esc(val) + '">';
+  if (it.type === 'time') return '<input type="time"' + base + ' value="' + esc(val) + '">';
+  return '<input type="text"' + base + ' value="' + esc(val) + '">';
+}
+PG.set = function () {
+  return A('getSettings').then(function (d) {
+    var groups = [], by = {};
+    d.items.forEach(function (it) { if (!by[it.group]) { by[it.group] = []; groups.push(it.group); } by[it.group].push(it); });
+    main('<h2>Settings</h2><div class="msg i">All company rules are managed here - no code changes needed. Changes take effect immediately and are recorded in the System Log.' + (d.canEditAccess ? '' : ' <b>Admin Access settings can be changed only by the Owner admin.</b>') + '</div><p><button class="btn" data-a="setSave">Save all changes</button> <button class="btn gr" data-a="runMaint">Run daily maintenance now</button> <button class="btn gr" data-a="remNow">Send pending reminder now</button></p>' +
+      groups.map(function (g) { return '<div class="card"><h3>' + esc(g) + '</h3>' + by[g].map(function (it) { return '<div class="row" style="align-items:center;border-top:1px solid var(--line);padding:8px 0"><div style="flex:2"><b>' + esc(friendly(it.key)) + '</b><div class="hint">' + esc(it.desc) + '</div></div><div style="flex:1.4">' + ctl(it) + '</div></div>'; }).join('') + '</div>'; }).join('') + '<p><button class="btn" data-a="setSave">Save all changes</button></p>');
+  });
+};
+H.setSave = function (d, b) {
+  var ch = {}; $$('[data-k]').forEach(function (e) { if (!e.disabled && String(e.value) !== String(e.getAttribute('data-o'))) ch[e.getAttribute('data-k')] = e.value; });
+  if (!Object.keys(ch).length) { toast('No changes to save.'); return; }
+  run(b, function () { return A('saveSettings', { changes: ch }).then(function (r) { toast(r.message); reload(); }); });
+};
+H.runMaint = function (d, b) { run(b, function () { return A('runMaintenance').then(function (r) { toast(r.message); }); }); };
+H.remNow = function (d, b) { run(b, function () { return A('sendReminderNow').then(function (r) { toast(r.message); }); }); };
+
+/* ======================= ADMIN: administrators / log / password ======================= */
+PG.admins = function () {
+  return A('listAdmins').then(function (d) {
+    S.adl = d.list;
+    main('<h2>Administrators</h2>' + (d.canEdit ? '<p><button class="btn" data-a="admForm">+ Add administrator</button></p>' : '<div class="msg w">Only the Owner admin can add or edit administrators.</div>') + '<div class="card">' + tbl(['ID', 'Name', 'Email', 'Mobile', 'Role', 'Status', 'Password set', ''], d.list.map(function (a) { return '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.name) + '</td><td>' + esc(a.email) + '</td><td>' + esc(a.phone) + '</td><td>' + a.role + '</td><td>' + badge(a.status) + '</td><td>' + (a.hasPassword ? 'Yes' : 'No - use Forgot password') + '</td><td>' + (d.canEdit ? '<button class="btn sm" data-a="admForm" data-id="' + esc(a.id) + '">Edit</button>' : '') + '</td></tr>'; })) + '</div><div class="hint">Security codes for password reset are sent to the administrator\'s registered email address.</div>');
+  });
+};
+H.admForm = function (d) {
+  var a = d.id ? S.adl.filter(function (x) { return x.id === d.id; })[0] : {}; S.aid = d.id || '';
+  modal(d.id ? 'Edit administrator' : 'Add administrator', '<div class="row"><div>' + fld('Name', '<input type="text" id="an" value="' + esc(a.name) + '">') + '</div><div>' + fld('Email', '<input type="text" id="ae2" value="' + esc(a.email) + '">') + '</div></div><div class="row"><div>' + fld('Mobile (10 digits, optional)', '<input type="text" id="ap" value="' + esc(a.phone) + '">') + '</div><div>' + fld('Role', '<select id="ar">' + opts([['ADMIN', 'Admin'], ['OWNER', 'Owner']], a.role || 'ADMIN') + '</select>') + '</div><div>' + fld('Status', '<select id="as2">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], a.status || 'Active') + '</select>') + '</div></div>', '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="admSave">Save</button>');
+};
+H.admSave = function (d, b) { run(b, function () { return A('saveAdmin', { id: S.aid, name: v('an'), email: v('ae2'), phone: v('ap'), role: v('ar'), status: v('as2') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+PG.log = function () {
+  var f = S.lf || {};
+  main('<h2>System Log</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="lq" value="' + esc(f.q || '') + '">') + '</div><div>' + fld('Module', '<select id="lmod">' + opts(['SECURITY', 'LEAVE', 'LEDGER', 'EMPLOYEE', 'ADMIN', 'SETTINGS', 'BONUS', 'UNAUTHORIZED', 'HOLIDAY', 'NOTIFICATION', 'SYSTEM'].map(function (x) { return [x, x]; }), f.module, 'All') + '</select>') + '</div><div><button class="btn" data-a="lGo">Search</button></div></div><div id="ll" class="ld">Loading...</div><div class="hint">Showing the latest 300 matching entries. The log is append-only through the application; administrators cannot edit or delete entries here.</div></div>');
+  return A('listLog', f).then(function (l) { $('#ll').className = ''; $('#ll').innerHTML = tbl(['Time', 'User', 'Action', 'Module', 'Record', 'Old', 'New', 'Remarks', 'Result'], l.map(function (r) { return '<tr><td>' + esc(r.at) + '</td><td>' + esc(r.user) + '<div class="hint">' + esc(r.role) + '</div></td><td>' + esc(r.action) + '</td><td>' + esc(r.module) + '</td><td>' + esc(r.rec) + '</td><td>' + esc(r.oldV) + '</td><td>' + esc(r.newV) + '</td><td>' + esc(r.remarks) + '</td><td>' + badge(r.result === 'SUCCESS' ? 'Active' : 'Inactive').replace(/>[^<]*</, '>' + esc(r.result) + '<') + '</td></tr>'; })); });
+};
+H.lGo = function () { S.lf = { q: v('lq'), module: v('lmod') }; reload(); };
+PG.pwd = function () {
+  main('<h2>Change Password</h2><div class="card" style="max-width:420px"><div data-enter="pwSave">' + fld('Current password', '<input type="password" id="pc" autocomplete="current-password">') + fld('New password', '<input type="password" id="pn" autocomplete="new-password">', 'Minimum 8 characters with letters and numbers.') + fld('Confirm new password', '<input type="password" id="pf" autocomplete="new-password">') + '<p><button class="btn" data-a="pwSave">Change password</button></p><div class="hint">All sessions (including this one) are signed out after a change.</div></div></div>');
+};
+H.pwSave = function (d, b) { run(b, function () { return A('changePassword', { currentPassword: v('pc'), newPassword: v('pn'), confirmPassword: v('pf') }).then(function (r) { signOut(r.message); }); }); };
+
+/* ---------- boot ---------- */
+(function () {
+  var st = null; try { st = JSON.parse(sessionStorage.getItem('kl') || 'null'); } catch (e) { }
+  if (st && st.token && st.role) {
+    S.role = st.role; S.token = st.token; S.user = st.user; S.cfg = st.cfg || {}; $('#boot').style.display = 'none'; shell();
+    if (S.role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
+    H.go({ p: S.role === 'emp' ? 'home' : 'dash' });
+  } else login();
+})();
+})();
+</script>
+</body>
+</html>
+
+
