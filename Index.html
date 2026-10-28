@@ -4,7 +4,8 @@
 <base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= company ?> - Leave Management</title>
+<title><?= company ?></title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap">
 <style>
 :root{--navy:#0f3d5e;--navy2:#165a8a;--bg:#f2f5f9;--line:#dbe3ec;--txt:#1f2d3a;--mut:#667788;--ok:#1b8a4b;--okb:#e4f5ea;--warn:#a86a00;--warnb:#fff3d6;--bad:#c0392b;--badb:#fdeaea;--gry:#6b7785;--gryb:#eceff3}
 *{box-sizing:border-box}
@@ -21,6 +22,9 @@ nav#nav{width:220px;background:#fff;border-right:1px solid var(--line);padding:1
 nav#nav a{display:block;padding:10px 18px;color:var(--txt);cursor:pointer;border-left:3px solid transparent}
 nav#nav a:hover{background:var(--bg)}nav#nav a.on{background:#e8f0f8;border-left-color:var(--navy);color:var(--navy);font-weight:600}
 nav#nav .sep{height:1px;background:var(--line);margin:8px 14px}
+@media(min-width:761px){
+  nav#nav{position:sticky;top:54px;align-self:flex-start;height:calc(100vh - 54px);overflow-y:auto}
+}
 main{flex:1;padding:20px;min-width:0}
 h2{margin:0 0 14px;color:var(--navy);font-size:20px}h3{margin:0 0 10px;font-size:15px;color:var(--navy)}
 .card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
@@ -58,6 +62,43 @@ input:focus,select:focus,textarea:focus{outline:2px solid #9cc4e4;border-color:v
 .x{background:none;border:0;font-size:22px;cursor:pointer;color:var(--mut)}.ld{padding:30px;text-align:center;color:var(--mut)}.mut{color:var(--mut)}.sec{border:1px dashed #c3cfdb;border-radius:6px;padding:8px 12px;margin-top:12px;background:#fbfcfe}
 @media(max-width:760px){.burger{display:block}.who .nm{display:none}nav#nav{position:fixed;top:54px;left:-240px;bottom:0;z-index:30;transition:left .2s;width:230px}nav#nav.open{left:0;box-shadow:4px 0 14px rgba(0,0,0,.2)}main{padding:12px}.lbrand{display:none}.kv{grid-template-columns:1fr}}
 
+.ecs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.ec{border:1px solid var(--line);border-radius:10px;padding:14px;background:#fff}
+.ec-h{display:flex;align-items:center;gap:10px}
+.av{width:42px;height:42px;border-radius:50%;background:#e8f0f8;color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.ec-n{flex:1;min-width:0}.ec-n b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ec-n small{color:var(--mut)}
+.ec-t{text-align:center;background:var(--badb);color:var(--bad);border-radius:8px;padding:4px 12px}.ec-t b{display:block;font-size:22px;line-height:1.2}.ec-t span{font-size:10px}
+.ec-s{margin:14px 0 6px;font-size:12px;color:var(--mut);font-weight:600}
+.ec-g3,.ec-g2,.ec-g1{display:grid;gap:8px}.ec-g3{grid-template-columns:repeat(3,1fr)}.ec-g2{grid-template-columns:repeat(2,1fr)}.ec-g1{grid-template-columns:1fr}
+.ec-x{border-radius:8px;padding:8px 4px;text-align:center;background:#f2f5f9}
+.ec-x span{display:block;font-size:11px;color:var(--mut)}.ec-x b{font-size:18px;color:var(--txt)}
+.ec-x small{display:block;font-size:11px;margin-top:2px;color:inherit}
+.ec-x.rm small{color:var(--ok)}
+.ec-x.cl{background:#e3eef8}.ec-x.cl span,.ec-x.cl b{color:#165a8a}
+.ec-x.lp{background:var(--badb)}.ec-x.lp span,.ec-x.lp b{color:var(--bad)}
+.ec-x.sl{background:var(--warnb)}.ec-x.sl span,.ec-x.sl b{color:var(--warn)}
+.ec-x.rm{background:var(--okb)}.ec-x.rm span,.ec-x.rm b{color:var(--ok)}
+.ec-x.ot{background:#efe7f7}.ec-x.ot span,.ec-x.ot b{color:#6a4a94}
+.ec-na{background:var(--gryb);border:1px dashed #b9c6d4;border-radius:8px;padding:10px;text-align:center;color:var(--gry);font-size:13px}
+.ec-b{display:flex;height:6px;border-radius:3px;overflow:hidden;background:#eceff3;margin-top:14px}.ec-b i{display:block;height:100%}
+
+
+.mw{margin-bottom:16px}
+.mw-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 14px}
+.mw-sum div{background:#f2f5f9;border-radius:8px;padding:8px;text-align:center}
+.mw-sum span{display:block;font-size:11px;color:var(--mut)}.mw-sum b{font-size:18px;color:var(--navy)}
+.mw-r{display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:#fff}
+.mw-r.cur{border:2px solid var(--navy2);background:#e8f0f8}
+.mw-r.mut{background:#f6f8fb;border-color:transparent}
+.mw-m{width:44px;font-weight:700;font-size:14px;color:var(--navy)}
+.mw-c{flex:1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.mw-ch{font-size:12px;padding:2px 9px;border-radius:10px;background:#eceff3;color:var(--gry)}
+.mw-ch.cr{background:var(--okb);color:var(--ok)}.mw-ch.us{background:#e3eef8;color:#165a8a}
+.mw-ch.lp{background:var(--badb);color:var(--bad)}.mw-ch.ad{background:var(--warnb);color:var(--warn)}
+.mw-no{font-size:12px;color:#9aa7b4}
+.mw-tag{font-size:11px;background:var(--navy2);color:#fff;padding:1px 9px;border-radius:10px}
+.mw-cl{width:62px;text-align:right}.mw-cl span{display:block;font-size:10px;color:var(--mut)}.mw-cl b{font-size:18px;color:var(--navy)}
+@media(max-width:760px){.mw-sum{grid-template-columns:repeat(2,1fr)}}
 /* ===== MOBILE / TOUCH FIXES ===== */
 #prog{position:fixed;top:0;left:0;right:0;height:3px;z-index:99;display:none;background:linear-gradient(90deg,#e0a100,#165a8a,#e0a100);background-size:200% 100%;animation:pg 1s linear infinite}
 @keyframes pg{to{background-position:-200% 0}}
@@ -65,6 +106,7 @@ html{-webkit-text-size-adjust:100%}
 button,a,[data-a],select,label,input{touch-action:manipulation;-webkit-tap-highlight-color:rgba(15,61,94,.15)}
 [data-a]{cursor:pointer}
 .btn{min-height:40px}
+main > p{display:flex;flex-wrap:wrap;gap:10px}
 .burger{min-width:44px;min-height:44px}
 @media(max-width:760px){
   input,select,textarea{font-size:16px}
@@ -85,6 +127,195 @@ button,a,[data-a],select,label,input{touch-action:manipulation;-webkit-tap-highl
   .stk td:empty{display:none}
   .ov{padding:0}.md{border-radius:0;min-height:100%;max-width:100%!important}
 }
+
+/* ===== LOGIN BRANDING ===== */
+.lgo{width:110px;height:110px;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:20px;flex-shrink:0}
+.lgo img{width:100%;height:100%;object-fit:contain;display:block}
+.lgo b{font-size:36px;color:var(--navy)}
+.lfeat{list-style:none;margin:22px 0 0;padding:0}
+.lfeat li{display:flex;gap:10px;align-items:center;margin:10px 0;font-size:14px;opacity:.92}
+.lfeat span{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+@media(max-width:760px){
+  body:has(.login){background:var(--bg)}
+  .login{flex-direction:column}
+  .login{min-height:100vh;min-height:100dvh}
+  .lbrand{display:flex;flex:none;flex-direction:row;align-items:center;gap:14px;padding:22px 18px}
+  .lbrand .lgo{width:64px;height:64px;margin:0;border-radius:12px}
+  .lbrand h1{font-size:20px;margin:0}
+  .lbrand p{font-size:12px;margin:4px 0 0;max-width:none;line-height:1.4}
+  .lfeat{display:none}
+  .lform{flex:1;align-items:center;justify-content:center;background:transparent;padding:20px 14px 90px;margin-top:0}
+  .lbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+}
+
+/* ===== COMPANY NAME FONT (white, Copperplate style) ===== */
+.lbrand h1,.top .brand{
+  font-family:"Copperplate Gothic Bold","Copperplate Gothic","Copperplate","Cinzel",Georgia,serif;
+  font-weight:400;
+  color:#fff;
+  letter-spacing:.8px;
+}
+.top .brand small{font-family:"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:0}
+
+/* ===== LEAVE POLICY POPUP ===== */
+.md.pol .mb{max-height:62vh;overflow:auto}
+.md.pol .mf{justify-content:space-between;align-items:center}
+.pol-c{margin:0;flex:1 1 auto;align-items:flex-start}
+@media(max-width:760px){
+  .md.pol{display:flex;flex-direction:column;height:100vh;height:100dvh}
+  .md.pol .mb{flex:1 1 auto;max-height:none;min-height:0;-webkit-overflow-scrolling:touch}
+  .md.pol .mf{flex-direction:column;align-items:stretch;gap:12px;padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+  .md.pol .mf .btn{width:100%}
+}
+
+/* ===== COLLAPSIBLE SECTIONS ===== */
+.cs{padding:0;overflow:hidden}
+.cs .ch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.cs .ch h3{margin:0}
+.cs .ar{font-size:20px;color:var(--mut);line-height:1;transition:transform .2s}
+.cs.open .ar{transform:rotate(180deg)}
+.cs .cbd{display:none;padding:14px 16px 16px;border-top:1px solid var(--line)}
+.cs.open .cbd{display:block}
+.cs .cbd .grid .card{margin-bottom:0}
+/* ===== RUNNING MESSAGE (ON LEAVE TODAY) ===== */
+.tick{display:flex;align-items:stretch;background:#0f3d5e;border-radius:8px;overflow:hidden;height:52px;margin:14px 0 16px}
+.tick .tl{display:flex;align-items:center;gap:9px;background:#0b2a43;padding:0 16px;flex-shrink:0;border-right:3px solid #e0a100}
+.tick .tl b{color:#fff;font-size:13px;font-weight:600;letter-spacing:.6px;white-space:nowrap}
+.tick .dot{width:9px;height:9px;border-radius:50%;background:#3ddc84;animation:tkpulse 1.4s ease-in-out infinite}
+@keyframes tkpulse{0%,100%{opacity:1}50%{opacity:.25}}
+.tick .tm{flex:1;overflow:hidden;display:flex;align-items:center;white-space:nowrap}
+.tick .in{display:inline-flex;align-items:center;gap:26px;padding-left:100%;animation:tkscroll 14s linear infinite}
+.tick .tm:hover .in{animation-play-state:paused}
+@keyframes tkscroll{to{transform:translateX(-100%)}}
+.tick .pp{display:inline-flex;align-items:center;gap:9px}
+.tick .av{width:28px;height:28px;border-radius:50%;background:#e8f0f8;color:#0f3d5e;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tick .nm{color:#fff;font-size:14px;font-weight:600}
+.tick .ty{font-size:11px;background:#e0a100;color:#3a2900;padding:2px 9px;border-radius:10px;font-weight:600}
+.tick .sp{color:#5d8bb0;font-size:16px}
+.tick .ct{display:flex;align-items:center;gap:6px;padding:0 16px;background:#0b2a43;color:#fff;font-size:13px;flex-shrink:0}
+.tick .ct b{background:#e0a100;color:#3a2900;border-radius:10px;padding:1px 9px}
+.tick.none .tl{border-right-color:#3ddc84}
+.tick.none .dot{animation:none}
+.tick.none .ct b{background:#3ddc84;color:#06361a}
+.tick .none-t{flex:1;display:flex;align-items:center;padding:0 16px;color:#fff;font-size:14px}
+@media(max-width:760px){.tick .tl{padding:0 10px}.tick .tl b{font-size:11px}.tick .ct{display:none}}
+
+/* numeric headers line up with their numbers */
+th.num{text-align:right}
+td.num,th.num{white-space:nowrap;padding-right:14px}
+.md .mw{margin-bottom:14px}
+.md td{vertical-align:middle}
+/* centered data tables (Balances & Diwali Bonus) */
+@media(min-width:761px){
+  .cn th,.cn td{vertical-align:middle;text-align:center}
+  .cn th:first-child,.cn td:first-child{text-align:left}
+  .cn.bn th:nth-child(8),.cn.bn td:nth-child(8){text-align:left}   /* Remarks in Diwali table */
+  .cn td{padding-top:12px;padding-bottom:12px}
+  .cn td.num,.cn th.num{text-align:center;padding-right:10px}
+  .cn .btn.sm{min-width:84px}
+}
+.ec-g4{display:grid;gap:8px;grid-template-columns:repeat(4,1fr)}
+.ec-h .btn{flex-shrink:0}
+.ec-m{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--mut)}
+.ec-m b{color:var(--txt)}
+/* Balances & Bonus rows (same look as monthly cards) */
+.mw-n{display:flex;align-items:center;gap:10px;width:210px;flex-shrink:0;min-width:0}
+.mw-n b{display:block;color:var(--navy)}.mw-n small{color:var(--mut)}
+.mw-n .av{width:38px;height:38px;font-size:13px}
+.mw-c.col{flex-direction:column;align-items:flex-start;gap:6px}
+.mw-l{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mw-lb{width:26px;font-size:11px;font-weight:700;color:var(--mut)}
+.mw-ch.bal{background:var(--okb);color:var(--ok);font-weight:700}
+.mw-ch.am{background:var(--okb);color:var(--ok);font-weight:700}
+.mw-ch.el{background:#e3eef8;color:#165a8a;font-weight:700}
+.b-Pending{background:var(--warnb);color:var(--warn)}
+@media(max-width:760px){.mw-r{flex-wrap:wrap}.mw-n{width:100%}}
+
+/* Employees: corporate directory */
+.ep-sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.ep-st{background:#fff;border:1px solid var(--line);border-top:3px solid var(--navy);border-radius:6px;padding:10px 14px}
+.ep-st span{display:block;font-size:11px;color:var(--mut);letter-spacing:.5px;text-transform:uppercase}
+.ep-st b{font-size:22px;color:var(--navy)}
+.ep-pn{background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ep-tb{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid var(--line)}
+.ep-tb b{font-size:14px;color:var(--navy)}.ep-tb span{font-size:12px;color:var(--mut)}
+.ep-g{display:grid;grid-template-columns:minmax(140px,1.6fr) minmax(140px,1.6fr) minmax(100px,1.2fr) 36px 36px 86px 196px;gap:14px;align-items:center;padding:0 16px}
+.ep-h{background:#f4f7fa;border-bottom:1px solid var(--line);height:36px;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--mut)}
+.ep-h .c{text-align:center}
+.ep-r{min-height:66px;border-bottom:1px solid #e8edf2}
+.ep-r:last-child{border-bottom:0}
+.ep-r:hover{background:#fafcfe}
+.ep-r.off{background:#fbfbfc}
+.ep-r.off .ep-nm,.ep-r.off .ep-ct,.ep-r.off .ep-dp{opacity:.65}
+.ep-nm{display:flex;align-items:center;gap:10px;min-width:0}
+.ep-mo{width:36px;height:36px;border-radius:6px;background:#e8eef4;color:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex-shrink:0}
+.ep-nm b{display:block;color:var(--navy);font-size:13px}
+.ep-nm small,.ep-ct small,.ep-dp small{display:block;color:var(--mut);font-size:11.5px}
+.ep-ct,.ep-dp{min-width:0}
+.ep-ct div,.ep-dp div{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ep-n{text-align:center;font-size:15px;font-weight:600;color:var(--navy)}
+.ep-n.x{color:#b4bfca;font-weight:400}
+.ep-n i{display:none;font-style:normal}
+.ep-sd{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;white-space:nowrap}
+.ep-sd i{width:8px;height:8px;border-radius:50%;display:block;flex-shrink:0}
+.ep-sd.on{color:#1b6b3c}.ep-sd.on i{background:var(--ok)}
+.ep-sd.of{color:#a8352a}.ep-sd.of i{background:var(--bad)}
+.ep-ac{display:flex;gap:6px;justify-content:flex-end;white-space:nowrap}
+.ep-b{border:1px solid #c3cfdb;background:#fff;color:var(--navy);border-radius:4px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.ep-b:hover{background:var(--bg)}
+.ep-b.p{background:var(--navy);border-color:var(--navy);color:#fff}.ep-b.p:hover{background:var(--navy2)}
+.ep-b.d{border-color:transparent;color:#a8352a;padding:5px 6px}.ep-b.d:hover{background:var(--badb)}
+@media(max-width:1120px){
+  .ep-h{display:none}
+  .ep-g{grid-template-columns:repeat(4,1fr);gap:8px 12px;padding:14px 16px}
+  .ep-nm,.ep-ct,.ep-dp,.ep-ac{grid-column:1/-1}
+  .ep-n{text-align:left}
+  .ep-n i{display:inline;color:var(--mut);font-size:11px;font-weight:600;margin-right:6px}
+  .ep-sx{grid-column:span 2}
+  .ep-ac{justify-content:stretch}.ep-ac .ep-b{flex:1;min-height:40px}
+}
+/* Employee cards: equal alignment */
+.ec{display:flex;flex-direction:column}
+.ec > .ec-b{margin-top:auto}
+.ec > div:nth-last-child(2){margin-bottom:14px}
+.ec-x,.ec-na{min-height:58px;display:flex;flex-direction:column;justify-content:center}
+/* ===== PRINT ===== */
+.pr-only{display:none}
+@media print{
+  .top,nav#nav,.bar,.mw-r .btn,#toast,#prog,#modal{display:none!important}
+  .lay{display:block}
+  main{padding:0}
+  body{background:#fff}
+  .card{border:0;padding:0}
+  .mw-r{break-inside:avoid}
+  .pr-only{display:block;color:#667788;font-size:12px;margin-bottom:10px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+.lvg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.lv{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.lv-h{display:flex;align-items:center;gap:10px}
+.lv-ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.lv-h b{display:block;font-size:14px;color:var(--txt)}
+.lv-h small{color:var(--mut);font-size:12px}
+.lv-n{display:flex;align-items:baseline;gap:6px}
+.lv-n b{font-size:30px;line-height:1;color:var(--txt)}
+.lv-n span{font-size:12px;color:var(--mut)}
+.lv-bar{height:6px;border-radius:3px;background:#eceff3;overflow:hidden}
+.lv-bar i{display:block;height:100%;border-radius:3px}
+.lv-m{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.lv-m.c3{grid-template-columns:repeat(3,1fr)}
+.lv-m.c2{grid-template-columns:repeat(2,1fr)}
+.lv-m span{display:block;font-size:11px;color:var(--mut)}
+.lv-m b{font-size:15px;color:var(--txt)}
+.lv-m b.lv-ok{color:var(--ok)}
+.lv-na{background:var(--bg);border:1px dashed #b9c6d4;border-radius:10px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--gry);text-align:center}
+.lv-na b{font-size:14px}
+.lv-na small{font-size:12px}
+@media(max-width:760px){.lvg{grid-template-columns:1fr}}
+.demo{background:var(--warnb);border:1px solid #f0d48a;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--warn);line-height:1.5}
+.demo b{display:block;margin-bottom:2px}
+.demo code{background:#fff;color:var(--txt);padding:1px 6px;border-radius:4px;border:1px solid var(--line);font-family:Consolas,monospace;font-size:12.5px}
 </style>
 </head>
 <body data-company="<?= company ?>">
@@ -96,7 +327,7 @@ button,a,[data-a],select,label,input{touch-action:manipulation;-webkit-tap-highl
 <script>
 (function () {
 'use strict';
-var CO = document.body.getAttribute('data-company') || 'Kisan Enterprises';
+var CO = document.body.getAttribute('data-company') || 'Attahar Web-Portal';
 var LT = { CL: 'Casual Leave', SL: 'Sick Leave', OTHER: 'Other Leave' };
 var S = { role: null, token: null, user: null, cfg: {}, tab: 'emp', view: 'login', emps: [], df: {}, otp: false };
 var H = {}, PG = {}, CHG = {};
@@ -118,6 +349,11 @@ function labelCells(root) {
   $$('.stk table', root).forEach(function (t) {
     var hs = $$('th', t).map(function (h) { return h.textContent; });
     $$('tr', t).forEach(function (r) { $$('td', r).forEach(function (c, i) { c.setAttribute('data-label', hs[i] || ''); }); });
+  });
+  $$('table', root).forEach(function (t) {
+    var rows = $$('tr', t); if (rows.length < 2) return;
+    var ths = $$('th', rows[0]), tds = $$('td', rows[1]);
+    ths.forEach(function (h, i) { if (tds[i] && tds[i].classList.contains('num')) h.classList.add('num'); });
   });
 }
 new MutationObserver(function () { labelCells(document); }).observe(document.body, { childList: true, subtree: true });
@@ -180,9 +416,34 @@ function modal(title, body, foot, small) {
 }
 function closeModal() { $('#modal').innerHTML = ''; }
 H.mclose = closeModal;
+/* ---------- leave policy ---------- */
+function policyHtml() {
+  return '<div class="msg i"><b>Leave Policy</b><ul style="margin:6px 0 0;padding-left:18px;line-height:1.6">' +
+    '<li>Har saal 12 paid leaves, 8 public holidays aur 12 paid sick leaves milti hain.</li>' +
+    '<li>12 paid leaves: 1-2 din ki leave par <b>2 din ka notice</b>, 2 din se zyada leave par <b>1 hafte ka notice</b> dena zaroori hai.</li>' +
+    '<li>Sick leave ke liye <b>doctor ka certificate compulsory</b> hai.</li></ul></div>' +
+    '<div class="msg w"><b>Penalty Rules (unauthorised / unapproved leave)</b><ul style="margin:6px 0 0;padding-left:18px;line-height:1.6">' +
+    '<li>1st aisi leave par: 1 din ki salary ka deduction + Rs 800 penalty.</li>' +
+    '<li>2nd aisi leave par: 1 din ki salary ka deduction + Rs 1000 penalty.</li>' +
+    '<li>3rd aisi leave par: 1 din ki salary ka deduction + Rs 1500 penalty.</li>' +
+    '<li>3 ya usse zyada continuous unauthorised leave ki situation me company service terminate kar sakti hai.</li></ul></div>' +
+    '<div class="msg i"><b>Important:</b> Leave possible ho to hamesha pehle se apply karein. Bina bataye ya last moment pe baar-baar chhutti lene par salary deduction ya doosri penalty lag sakti hai. Galat reason dena, ya sick leave ke liye proof na dene par bhi action ho sakta hai. Is form ko submit karke aap confirm karte ho ki saari details sahi hain.</div>';
+}
+function penCard(list) {
+  return '<div class="card"><h3>My Unauthorized Leave / Penalty Record</h3>' + tbl(['Incident', 'Dates', 'Days', 'Occurrence', 'Salary deduction (days)', 'Penalty (Rs)', 'Remarks'], (list || []).map(function (u) {
+    return '<tr><td>' + esc(u.id) + '</td><td>' + esc(u.from) + (u.from !== u.to ? ' - ' + esc(u.to) : '') + '</td><td class="num">' + u.duration + '</td><td class="num">' + u.occ + '</td><td class="num">' + u.salary + '</td><td class="num">' + u.penalty + '</td><td>' + esc(u.remarks) + '</td></tr>';
+  }), 'No unauthorized leave or penalty recorded. Keep it up!', true) + '</div>';
+}
+function showPolicy() {
+  modal('Leave Policy - please read', '<div class="pol-t">' + policyHtml() + '</div>', '<label class="hb pol-c"><input type="checkbox" id="pk" data-ch="pol"> <span><b>Maine leave policy padh li hai.</b></span></label><button class="btn" id="pb" data-a="polOk" disabled>Proceed</button>');
+  var m = $('#modal .md'); if (m) m.classList.add('pol');
+  var x = $('#modal .x'); if (x) x.style.display = 'none';
+}
+CHG.pol = function () { var b = $('#pb'); if (b) b.disabled = !v('pk'); };
+H.polOk = function () { try { sessionStorage.setItem('kla', '1'); } catch (e) { } closeModal(); E('ackPolicy').catch(function () { }); };
 function ask(msg, label, cls) {
   return new Promise(function (res) {
-    modal('Please confirm', '<p>' + esc(msg) + '</p>', '<button class="btn gr" data-a="cNo">Cancel</button><button class="btn ' + (cls || '') + '" data-a="cYes">' + esc(label || 'Yes, continue') + '</button>', true);
+    modal('Please confirm', '<p>' + esc(msg) + '</p>', '<button class="btn gr" data-a="cNo">No</button><button class="btn ' + (cls || '') + '" data-a="cYes">' + esc(label || 'Yes, continue') + '</button>', true);
     H.cNo = function () { closeModal(); res(false); }; H.cYes = function () { closeModal(); res(true); };
   });
 }
@@ -208,10 +469,16 @@ function begin(role, r) {
   S.role = role; S.token = r.token; S.user = role === 'emp' ? r.user : r.admin; S.cfg = r.config || {}; save(); shell();
   if (role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
   H.go({ p: role === 'emp' ? 'home' : 'dash' });
+  if (role === 'emp') { try { sessionStorage.removeItem('kla'); } catch (e) { } showPolicy(); }
 }
 
 /* ---------- login ---------- */
+var LOGO_URL = '<?!= logoDataUri_() ?>';
+function logoHtml() {
+  return LOGO_URL ? '<img src="' + LOGO_URL + '" alt="' + esc(CO) + '">' : '<b>A</b>';
+}
 function login(msg) {
+  $('#toast').innerHTML = '';
   $('#boot').style.display = 'none';
   var b = '';
   if (S.view === 'forgot1') {
@@ -222,12 +489,12 @@ function login(msg) {
     b = '<div class="tabs"><a data-a="tab" data-v="emp" class="' + (S.tab === 'emp' ? 'on' : '') + '">Employee</a><a data-a="tab" data-v="adm" class="' + (S.tab === 'adm' ? 'on' : '') + '">Admin</a></div>';
     if (S.tab === 'emp') {
       b += S.otp ? '<div data-enter="eOtp"><div class="msg i">A 6-digit code was emailed to your registered email.</div>' + fld('Verification code', '<input type="text" id="lc" inputmode="numeric" maxlength="6">') + '<div id="lm"></div><p><button class="btn" data-a="eOtp" style="width:100%">Verify and sign in</button></p></div>'
-        : '<div data-enter="eLogin">' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username" placeholder="name@example.com or 10-digit mobile">', 'Use the email or mobile number registered with the company.') + '<div id="lm"></div><p><button class="btn" data-a="eLogin" style="width:100%">Sign in</button></p></div>';
+        : '<div data-enter="eLogin"><div class="demo"><b>Demo account</b>Try mobile number <code>7777766666</code></div>' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username" placeholder="Email or 10-digit mobile">', 'Use the email or mobile number registered with the company.') + '<div id="lm"></div><p><button class="btn" data-a="eLogin" style="width:100%">Sign in</button></p></div>';
     } else {
-      b += '<div data-enter="aLogin">' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username">') + fld('Password', '<input type="password" id="lp" autocomplete="current-password">') + '<div id="lm"></div><p><button class="btn" data-a="aLogin" style="width:100%">Sign in</button></p><p><button class="lnk" data-a="toForgot">Forgot password? / First-time sign in</button></p></div>';
+      b += '<div data-enter="aLogin"><div class="demo"><b>Demo account</b>Email <code>alexpadillagc29@gmail.com</code><br>Password <code>password123</code></div>' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username">') + fld('Password', '<input type="password" id="lp" autocomplete="current-password">') + '<div id="lm"></div><p><button class="btn" data-a="aLogin" style="width:100%">Sign in</button></p><p><button class="lnk" data-a="toForgot">Forgot password? / First-time sign in</button></p></div>';
     }
   }
-  $('#app').innerHTML = '<div class="login"><div class="lbrand"><h1>' + esc(CO) + '</h1><p>Leave Management Portal. Apply for leave, track approvals and view your leave balance in one place.</p></div><div class="lform"><div class="lbox">' + b + '</div></div></div>';
+  $('#app').innerHTML = '<div class="login"><div class="lbrand"><div class="lgo">' + logoHtml() + '</div><div class="lbt"><h1>' + esc(CO) + '</h1><p>Leave Management Portal. Apply for leave, track approvals and view your leave balance in one place.</p><ul class="lfeat"><li><span>&#9998;</span>Apply for leave in a few taps</li><li><span>&#10003;</span>Track approval status</li><li><span>&#8721;</span>See CL and SL balance month by month</li></ul></div></div><div class="lform"><div class="lbox">' + b + '</div></div></div>';
   if (msg) setLm(msg, 'w');
 }
 function setLm(t, c) { var e = $('#lm'); if (e) e.innerHTML = '<div class="msg ' + (c || 'e') + '">' + esc(t) + '</div>'; }
@@ -256,28 +523,89 @@ H.go = function (d) {
 function reload() { H.go({ p: S.page }); }
 
 /* ======================= EMPLOYEE PAGES ======================= */
-function tableMonths(t, title, scopedNote) {
-  return '<div class="card"><h3>' + title + '</h3><div class="hint" style="margin:-6px 0 8px">' + scopedNote + '</div>' + tbl(['Month', 'Opening', 'Credited', 'Used', 'Lapsed / Expired', 'Adjust', 'Closing'], t.map(function (r) { return '<tr><td>' + r.month + '</td><td class="num">' + r.opening + '</td><td class="num">' + r.credit + '</td><td class="num">' + r.used + '</td><td class="num">' + r.lapsed + '</td><td class="num">' + r.adjust + '</td><td class="num"><b>' + r.closing + '</b></td></tr>'; })) + '</div>';
+function monthCards(t, title, note, kind, year) {
+  var now = new Date(), cur = year === now.getFullYear() ? now.getMonth() : -1;
+  var lapsName = kind === 'CL' ? 'Lapsed' : 'Expired';
+  var cr = 0, us = 0, lp = 0;
+  t.forEach(function (r) { cr += r.credit; us += r.used; lp += r.lapsed; });
+  function r2(n) { return Math.round(n * 100) / 100; }
+  var bal = t[cur >= 0 ? cur : 11].closing;
+  function chip(label, val, cls, sign) { return '<span class="mw-ch ' + cls + '">' + label + ' ' + (sign || '') + val + '</span>'; }
+  var rows = t.map(function (r, i) {
+    var any = r.opening || r.credit || r.used || r.lapsed || r.adjust;
+    var chips = '';
+    if (r.opening) chips += chip('Opening', r.opening, '');
+    if (r.credit) chips += chip('Credited', r.credit, 'cr', '+');
+    if (r.used) chips += chip('Used', r.used, 'us', '-');
+    if (r.lapsed) chips += chip(lapsName, r.lapsed, 'lp', '-');
+    if (r.adjust) chips += chip('Adjust', r.adjust, 'ad', r.adjust > 0 ? '+' : '');
+    if (!any) chips = '<span class="mw-no">' + (cur >= 0 && i > cur ? 'Upcoming' : 'No activity') + '</span>';
+    if (i === cur) chips = '<span class="mw-tag">This month</span>' + chips;
+    return '<div class="mw-r' + (i === cur ? ' cur' : (!any ? ' mut' : '')) + '"><div class="mw-m">' + r.month + '</div><div class="mw-c">' + chips + '</div><div class="mw-cl"><span>Closing</span><b>' + r.closing + '</b></div></div>';
+  }).join('');
+  return '<div class="card mw"><h3>' + title + '</h3>' + (note ? '<div class="hint" style="margin:-6px 0 0">' + note + '</div>' : '') +
+    '<div class="mw-sum"><div><span>Credited</span><b>' + r2(cr) + '</b></div><div><span>Used</span><b>' + r2(us) + '</b></div><div><span>' + lapsName + '</span><b>' + r2(lp) + '</b></div><div><span>' + (kind === 'CL' ? 'Balance now' : 'Remaining') + '</span><b>' + bal + '</b></div></div>' + rows + '</div>';
+}
+function lvCard(k, d, al) {
+  var s = d.summary, x = s[k] || {}, tc = (d.typeCounts || {})[k] || { approved: 0, pending: 0 };
+  var names = { CL: 'Casual leave', SL: 'Sick leave', OTHER: 'Other leave' };
+  var tone = {
+    CL: { bg: '#e3eef8', fg: '#165a8a', bar: '#165a8a', ab: 'CL' },
+    SL: { bg: 'var(--warnb)', fg: 'var(--warn)', bar: '#e0a100', ab: 'SL' },
+    OTHER: { bg: '#efe7f7', fg: '#6a4a94', bar: '#7d5ba6', ab: 'OL' }
+  }[k];
+  var on = al.indexOf(k) > -1 || (x.used > 0);
+  if (!on) return '<div class="lv-na"><b>' + names[k] + '</b><small>Not assigned</small></div>';
+  var sub, big, pct, meta;
+  if (k === 'OTHER') {
+    sub = esc((S.cfg && S.cfg.otherTreatment) || 'Unpaid') + ', no balance limit';
+    big = '<b>' + x.used + '</b><span>days used</span>';
+    pct = x.used > 0 ? 100 : 0;
+    meta = '<div class="lv-m c2"><div><span>Approved</span><b>' + tc.approved + '</b></div><div><span>Pending</span><b>' + tc.pending + '</b></div></div>';
+  } else {
+    var scoped = k === 'CL' ? d.clMonthScoped : d.slMonthScoped;
+    sub = scoped ? 'Lapses every month end' : (k === 'SL' ? 'Carries forward till 31 Dec' : 'Carries forward within the year');
+    big = '<b>' + x.used + '</b><span>days used of ' + x.credited + '</span>';
+    pct = x.credited > 0 ? Math.min(100, Math.round(x.used / x.credited * 100)) : 0;
+    meta = '<div class="lv-m c3"><div><span>Credited</span><b>' + x.credited + '</b></div><div><span>' + (k === 'CL' ? 'Lapsed' : 'Expired') + '</span><b>' + x.lapsed + '</b></div><div><span>' + (k === 'CL' ? 'Balance' : 'Remaining') + '</span><b class="lv-ok">' + x.balance + '</b></div></div>';
+  }
+  return '<div class="lv"><div class="lv-h"><div class="lv-ic" style="background:' + tone.bg + ';color:' + tone.fg + '">' + tone.ab + '</div><div><b>' + names[k] + '</b><small>' + sub + '</small></div></div>' +
+    '<div class="lv-n">' + big + '</div><div class="lv-bar"><i style="width:' + pct + '%;background:' + tone.bar + '"></i></div>' + meta + '</div>';
 }
 PG.home = function () {
-  return E('home').then(function (d) {
-    var s = d.summary;
-    main('<h2>Welcome, ' + esc(d.employee.name) + '</h2><div class="grid g5"><div class="stat"><b>' + s.CL.balance + '</b><span>Casual Leave balance' + (d.clMonthScoped ? ' (this month)' : '') + '</span></div><div class="stat a"><b>' + s.SL.balance + '</b><span>Sick Leave balance</span></div><div class="stat a"><b>' + d.counts.pending + '</b><span>Pending applications</span></div><div class="stat g"><b>' + d.counts.approved + '</b><span>Approved (' + d.year + ')</span></div><div class="stat r"><b>' + d.counts.rejected + '</b><span>Rejected (' + d.year + ')</span></div></div><p><button class="btn" data-a="go" data-p="apply">Apply for leave</button></p><div class="grid g2"><div class="card"><h3>Casual Leave ' + d.year + '</h3><div class="kv"><b>Credited</b><span>' + s.CL.credited + '</span><b>Used</b><span>' + s.CL.used + '</span><b>Lapsed</b><span>' + s.CL.lapsed + '</span></div><div class="hint">Unused Casual Leave lapses at the end of each month.</div></div><div class="card"><h3>Sick Leave ' + d.year + '</h3><div class="kv"><b>Credited</b><span>' + s.SL.credited + '</span><b>Used</b><span>' + s.SL.used + '</span><b>Expired</b><span>' + s.SL.lapsed + '</span><b>Other Leave used</b><span>' + s.OTHER.used + '</span></div><div class="hint">Unused Sick Leave carries forward within the year and expires on 31 December.</div></div></div>' +
-      tableMonths(d.tables.CL, 'Casual Leave - month-wise', d.clMonthScoped ? 'Each month is separate; unused leave lapses.' : '') + tableMonths(d.tables.SL, 'Sick Leave - month-wise', d.slMonthScoped ? '' : 'Closing balance carries forward within the year.'));
+  return Promise.all([E('home'), E('myLeaves')]).then(function (x) {
+    var d = x[0], al = x[1].allowed || ['CL', 'SL', 'OTHER'], s = d.summary;
+    var hasCL = al.indexOf('CL') > -1 || s.CL.used > 0, hasSL = al.indexOf('SL') > -1 || s.SL.used > 0;
+    var stats = '<div class="stat a"><b>' + d.counts.pending + '</b><span>Pending applications</span></div><div class="stat g"><b>' + d.counts.approved + '</b><span>Approved (' + d.year + ')</span></div><div class="stat r"><b>' + d.counts.rejected + '</b><span>Rejected (' + d.year + ')</span></div>';
+    var cards = '<div class="lvg">' + lvCard('CL', d, al) + lvCard('SL', d, al) + lvCard('OTHER', d, al) + '</div>';
+    main('<h2>Welcome, ' + esc(d.employee.name) + '</h2><div class="grid g5">' + stats + '</div><p><button class="btn" data-a="go" data-p="apply">Apply for leave</button></p>' + cards +
+      (hasCL ? monthCards(d.tables.CL, 'Casual leave ' + d.year, d.clMonthScoped ? 'Each month is separate. Unused leave lapses at month end.' : '', 'CL', d.year) : '') +
+      (hasSL ? monthCards(d.tables.SL, 'Sick leave ' + d.year, d.slMonthScoped ? '' : 'Closing balance carries forward within the year.', 'SL', d.year) : '') +
+      penCard(d.penalties) + '<div class="card"><h3>Leave Policy &amp; Penalty Rules</h3>' + policyHtml() + '</div>');
   });
 };
 var pvSeq = 0, pvT = null;
 function newReq() { S.reqId = 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
-PG.apply = function () {
+
+function leaveOptsFor(allowed, blank) {
+  var h = '<option value="">' + esc(blank) + '</option>';
+  ['CL', 'SL', 'OTHER'].forEach(function (k) {
+    var ok = allowed.indexOf(k) > -1;
+    h += '<option value="' + k + '"' + (ok ? '' : ' disabled') + '>' + LT[k] + (ok ? '' : ' (not assigned)') + '</option>';
+  });
+  return h;
+}
+
+PG.apply = function () { return E('myLeaves').then(function (ml) {
   newReq(); var u = S.user; var c = S.cfg;
   main('<h2>Apply for Leave</h2><div class="card" style="max-width:720px"><div class="row"><div>' + fld('Employee name', '<input type="text" value="' + esc(u.name) + '" disabled>') + '</div><div>' + fld('Employee ID', '<input type="text" value="' + esc(u.id) + '" disabled>') + '</div></div>' +
-    fld('Leave type', '<select id="lt" data-ch="pv">' + typeOpts('', 'Select leave type') + '</select>', 'Casual Leave and Other Leave need at least ' + c.clNotice + ' hours notice. Sick Leave longer than ' + c.medThreshold + ' days needs a medical certificate.') +
+    fld('Leave type', '<select id="lt" data-ch="pv">' + leaveOptsFor(ml.allowed, 'Select leave type') + '</select>', 'Casual Leave and Other Leave need at least ' + c.clNotice + ' hours notice. Sick Leave longer than ' + c.medThreshold + ' days needs a medical certificate.') +
     fld('Leave duration', '<label><input type="radio" name="dt" value="SINGLE" checked data-ch="pv"> Single day</label> &nbsp; <label><input type="radio" name="dt" value="MULTI" data-ch="pv"> Multiple days</label>') +
     '<div class="row"><div>' + fld('<span id="fl">Leave date</span>', '<input type="date" id="fd" data-ch="pv">') + '</div><div id="tw" style="display:none">' + fld('To date', '<input type="date" id="td" data-ch="pv">') + '</div></div>' +
-    '<div id="pv" class="pv"></div>' + fld('Reason', '<textarea id="rs" rows="3" maxlength="500"></textarea>') +
+    (c.weeklyOffText ? '<div class="msg i">Weekly off: ' + esc(c.weeklyOffText) + '. These days are not counted as leave.</div>' : '') + '<div id="pv" class="pv"></div>' + fld('Reason', '<textarea id="rs" rows="3" maxlength="500"></textarea>') +
     '<div id="dw" style="display:none">' + fld('Medical certificate (required)', '<input type="file" id="fl2" accept=".pdf,.jpg,.jpeg,.png">', 'PDF, JPG or PNG, maximum ' + c.maxUploadMb + ' MB.') + '</div>' +
     '<label class="hb" style="align-items:flex-start;margin-top:14px"><input type="checkbox" id="dc"> <span>I declare that the information given is true and I understand that this leave is subject to Admin approval.</span></label><p><button class="btn" data-a="submit">Submit application</button></p></div>');
-};
+}); };
 CHG.pv = function () {
   var multi = $('input[name=dt]:checked').value === 'MULTI'; $('#tw').style.display = multi ? '' : 'none'; $('#fl').textContent = multi ? 'From date' : 'Leave date';
   clearTimeout(pvT); var n = ++pvSeq;
@@ -345,22 +673,63 @@ function bars(obj, label) {
   var keys = Object.keys(obj), max = Math.max.apply(null, keys.map(function (k) { return obj[k]; }).concat([1]));
   return keys.map(function (k) { return '<div class="hb"><span class="t">' + esc(label ? label[k] : k) + '</span><i style="width:' + Math.round(obj[k] / max * 60) + '%"></i><em>' + obj[k] + '</em></div>'; }).join('');
 }
-
+function sect(id, title, body, def) {
+  S.open = S.open || {};
+  var o = S.open[id] === undefined ? def : S.open[id];
+  return '<div class="card cs' + (o ? ' open' : '') + '"><div class="ch" data-a="tg" data-id="' + id + '"><h3>' + title + '</h3><span class="ar">&#9662;</span></div><div class="cbd">' + body + '</div></div>';
+}
 /* ======================= ADMIN: dashboard ======================= */
+function empCards(list, typeF, cutoffSet, year) {
+  if (!list || !list.length) return '<div class="ld">No employees found for the selected filters.</div>';
+  var show = typeF ? [typeF] : ['CL', 'SL', 'OTHER'];
+  var MN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  var mName = (year === new Date().getFullYear()) ? MN[new Date().getMonth()] : 'December';
+  function tile(label, val, cls, sub) { return '<div class="ec-x ' + (cls || '') + '"><span>' + label + '</span><b>' + val + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; }
+  function sec(title, inner) { return '<div class="ec-s">' + title + '</div>' + inner; }
+  var na = '<div class="ec-na">Not applicable</div>';
+  var note = cutoffSet ? '' : '<div class="msg w">CL Lapsed needs the Diwali cutoff date. Set it in Settings &gt; Diwali Bonus.</div>';
+  return note + '<div class="ecs">' + list.map(function (e) {
+    var used = { CL: e.clUsed, SL: e.slUsed, OTHER: e.otherUsed }, total = 0, html = '', bar = '';
+    show.forEach(function (k) { total += used[k]; });
+    var ini = String(e.name || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase();
+    show.forEach(function (k) {
+      var off = e.allowed.indexOf(k) < 0 && !used[k];
+      if (k === 'CL') {
+        html += sec('Casual leave (CL)', off ? na : '<div class="ec-g3">' + tile('Used', e.clUsed, e.clUsed ? 'cl' : '') + tile('Lapsed', e.clLapsed === null ? 'Set cutoff' : e.clLapsed, e.clLapsed ? 'lp' : '') + tile('Balance', e.clBalance, 'rm', mName) + '</div>');
+      } else if (k === 'SL') {
+        html += sec('Sick leave (SL)', off ? na : '<div class="ec-g2">' + tile('Used', e.slUsed, e.slUsed ? 'sl' : '') + tile('Remaining', e.slRemaining, 'rm') + '</div>');
+      } else {
+        html += sec('Other leave', off ? na : '<div class="ec-g1">' + tile('Used', e.otherUsed, e.otherUsed ? 'ot' : '') + '</div>');
+      }
+      if (used[k] && total) bar += '<i class="c' + k + '" style="width:' + (used[k] / total * 100) + '%"></i>';
+    });
+    return '<div class="ec"><div class="ec-h"><div class="av">' + esc(ini) + '</div><div class="ec-n"><b>' + esc(e.name) + '</b><small>' + esc(e.id) + '</small></div><div class="ec-t"><b>' + total + '</b><span>Total days</span></div></div>' + html + '<div class="ec-b">' + bar + '</div></div>';
+  }).join('') + '</div>';
+}
+
 PG.dash = function () {
   return Promise.all([S.emps.length ? S.emps : A('listEmployees'), A('dashboard', S.df)]).then(function (r) {
     S.emps = r[0]; var d = r[1], c = d.cards, f = S.df;
     var mx = Math.max.apply(null, d.monthly.map(function (m) { return m.CL + m.SL + m.OTHER; }).concat([1]));
     var cols = d.monthly.map(function (m) { var t = m.CL + m.SL + m.OTHER; return '<div class="c"><span>' + (t || '') + '</span>' + ['OTHER', 'SL', 'CL'].map(function (k) { return m[k] ? '<i class="c' + k + '" style="height:' + (m[k] / mx * 120) + 'px"></i>' : ''; }).join('') + '<span>' + m.m + '</span></div>'; }).join('');
+    var ini = function (n) { return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase(); };
+    var tick;
+    if (d.onLeaveList.length) {
+      var items = d.onLeaveList.map(function (o) { return '<span class="pp"><span class="av">' + esc(ini(o.name)) + '</span><span class="nm">' + esc(o.name) + '</span><span class="ty">' + esc(LT[o.type]) + '</span></span>'; }).join('<span class="sp">&#9670;</span>');
+      tick = '<div class="tick"><div class="tl"><span class="dot"></span><b>ON LEAVE TODAY</b></div><div class="tm"><div class="in" style="animation-duration:' + Math.max(12, d.onLeaveList.length * 6 + 8) + 's">' + items + '</div></div><div class="ct">Total <b>' + d.onLeaveList.length + '</b></div></div>';
+    } else {
+      tick = '<div class="tick none"><div class="tl"><span class="dot"></span><b>ON LEAVE TODAY</b></div><div class="none-t">Full attendance today. No one is on leave.</div><div class="ct">Total <b>0</b></div></div>';
+    }
     main('<h2>Admin Dashboard</h2><div class="card"><div class="bar"><div>' + fld('Year', '<select id="fy">' + opts(d.years.map(function (y) { return [y, y]; }), d.year) + '</select>') + '</div><div>' + fld('Employee', '<select id="fe">' + empOpts(f.employeeId, 'All') + '</select>') + '</div><div>' + fld('Leave type', '<select id="ft">' + typeOpts(f.leaveType, 'All') + '</select>') + '</div><div>' + fld('Status', '<select id="fs">' + opts([['PENDING', 'Pending'], ['APPROVED', 'Approved'], ['REJECTED', 'Rejected'], ['CANCELLED', 'Cancelled']], f.status, 'All') + '</select>') + '</div><div>' + fld('From date', '<input type="date" id="ff" value="' + esc(f.fromDate || '') + '">') + '</div><div>' + fld('To date', '<input type="date" id="fx" value="' + esc(f.toDate || '') + '">') + '</div><div><button class="btn" data-a="dFilter">Apply</button> <button class="btn gr" data-a="dClear">Reset</button></div></div></div>' +
-      '<div class="grid g5"><div class="stat"><b>' + c.employees + '</b><span>Active employees</span></div><div class="stat"><b>' + c.applications + '</b><span>Applications</span></div><div class="stat a"><b>' + c.pending + '</b><span>Pending</span></div><div class="stat g"><b>' + c.approved + '</b><span>Approved</span></div><div class="stat r"><b>' + c.rejected + '</b><span>Rejected</span></div><div class="stat"><b>' + c.clUsed + '</b><span>CL used (days)</span></div><div class="stat"><b>' + c.slUsed + '</b><span>SL used (days)</span></div><div class="stat g"><b>' + c.onLeave + '</b><span>On leave today</span></div><div class="stat a"><b>' + (c.diwaliCl === null ? '-' : c.diwaliCl) + '</b><span>Diwali Bonus eligible CL' + (c.diwaliCl === null ? ' (set cutoff)' : '') + '</span></div><div class="stat r"><b>' + c.unauthorized + '</b><span>Unauthorized incidents</span></div></div><br>' +
-      '<div class="grid g3"><div class="card"><h3>Application status</h3>' + bars(d.status) + '</div><div class="card"><h3>Approved leave days by type</h3>' + bars(d.typeDist, LT) + '</div><div class="card"><h3>Monthly approved leave days</h3><div class="cols">' + cols + '</div><div class="leg"><i class="cCL"></i>CL<i class="cSL"></i>SL<i class="cOTHER"></i>Other</div></div></div>' +
-      '<div class="card"><h3>Pending applications (' + d.pending.length + ')</h3>' + appTable(d.pending) + '</div><div class="card"><h3>Recent applications</h3>' + appTable(d.recent) + '</div>' +
-      '<div class="card"><h3>Employee-wise approved leave (days)</h3>' + tbl(['Employee', 'CL', 'SL', 'Other', 'Total'], d.empSummary.map(function (e) { return '<tr><td>' + esc(e.name) + ' <span class="hint">' + esc(e.id) + '</span></td><td class="num">' + e.CL + '</td><td class="num">' + e.SL + '</td><td class="num">' + e.OTHER + '</td><td class="num"><b>' + e.total + '</b></td></tr>'; }), 'No approved leave for the selected filters.') + '</div>' +
-      (d.onLeaveList.length ? '<div class="card"><h3>On leave today</h3>' + d.onLeaveList.map(function (o) { return esc(o.name) + ' (' + LT[o.type] + ')'; }).join(', ') + '</div>' : ''));
+      '<div class="grid g5"><div class="stat"><b>' + c.employees + '</b><span>Active employees</span></div><div class="stat"><b>' + c.applications + '</b><span>Applications</span></div><div class="stat a"><b>' + c.pending + '</b><span>Pending</span></div><div class="stat g"><b>' + c.approved + '</b><span>Approved</span></div><div class="stat r"><b>' + c.rejected + '</b><span>Rejected</span></div><div class="stat"><b>' + c.clUsed + '</b><span>CL used (days)</span></div><div class="stat"><b>' + c.slUsed + '</b><span>SL used (days)</span></div><div class="stat g"><b>' + c.onLeave + '</b><span>On leave today</span></div><div class="stat a"><b>' + (c.diwaliCl === null ? '-' : c.diwaliCl) + '</b><span>Diwali Bonus eligible CL' + (c.diwaliCl === null ? ' (set cutoff)' : '') + '</span></div><div class="stat r"><b>' + c.unauthorized + '</b><span>Unauthorized incidents</span></div></div>' + tick +
+      sect('charts', 'Leave summary charts', '<div class="grid g3"><div class="card"><h3>Application status</h3>' + bars(d.status) + '</div><div class="card"><h3>Approved leave days by type</h3>' + bars(d.typeDist, LT) + '</div><div class="card"><h3>Monthly approved leave days</h3><div class="cols">' + cols + '</div><div class="leg"><i class="cCL"></i>CL<i class="cSL"></i>SL<i class="cOTHER"></i>Other</div></div></div>', false) +
+      sect('pending', 'Pending applications (' + d.pending.length + ')', appTable(d.pending), true) +
+      sect('recent', 'Recent applications', appTable(d.recent), false) +
+      '<div class="card"><h3>Employee-wise ' + (f.status ? f.status.toLowerCase() : 'approved') + ' leave (days)</h3>' + empCards(d.empCards, f.leaveType, d.cutoffSet, d.year) + '</div>');
   });
 };
 H.dFilter = function () { S.df = { year: v('fy'), employeeId: v('fe'), leaveType: v('ft'), status: v('fs'), fromDate: v('ff'), toDate: v('fx') }; reload(); };
+H.tg = function (d, b) { var c = b.closest('.cs'); if (!c) return; var o = c.classList.toggle('open'); S.open = S.open || {}; S.open[d.id] = o; };
 H.dClear = function () { S.df = {}; reload(); };
 
 /* ======================= ADMIN: applications ======================= */
@@ -395,7 +764,15 @@ H.doc = function (d, b) {
 };
 H.approve = function (d, b) { run(b, function () { return A('approve', { id: d.id, remarks: v('mr'), override: v('mo'), overrideReason: v('mor') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
 H.reject = function (d, b) { run(b, function () { return A('reject', { id: d.id, remarks: v('mr') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
-H.cancelAp = function (d, b) { ask('Cancel this approved leave and restore the balance through reversal entries?', 'Yes, cancel leave', 'bad').then(function (y) { if (y) run(null, function () { return A('cancelApproved', { id: d.id, reason: v('cr') }).then(function (r) { toast(r.message); reload(); }); }); }); };
+H.cancelAp = function (d) {
+  var reason = v('cr').trim();
+  if (reason.length < 3) { toast('Please enter the reason for cancelling this approved leave.', true); return; }
+  ask('Cancel this approved leave and restore the balance through reversal entries?', 'Yes, cancel leave', 'bad').then(function (y) {
+    if (y) run(null, function () {
+      return A('cancelApproved', { id: d.id, reason: reason }).then(function (r) { closeModal(); toast(r.message); reload(); });
+    });
+  });
+};
 H.edit = function () {
   var a = S.cur;
   modal('Edit ' + a.id, leaveFields('e', a, true), '<button class="btn gr" data-a="mclose">Close</button><button class="btn" data-a="eSave">Save changes</button>');
@@ -412,37 +789,125 @@ PG.manual = function () {
 H.mSave = function (d, b) { var p = readLeave('m'); p.employeeId = v('mem'); p.remarks = v('mrm'); run(b, function () { return A('manualLeave', p).then(function (r) { toast(r.message); PG.manual().then(function () { }); }); }); };
 
 /* ======================= ADMIN: employees ======================= */
+function epNum(allowed, key, val) {
+  return allowed.indexOf(key) > -1 ? '<div class="ep-n"><i>' + key + '</i>' + val + '</div>' : '<div class="ep-n x"><i>' + key + '</i>&ndash;</div>';
+}
 PG.emps = function () {
   return A('listEmployees').then(function (l) {
     S.emps = l;
-    main('<h2>Employees</h2><p><button class="btn" data-a="empForm">+ Add employee</button></p><div class="card">' + tbl(['ID', 'Name', 'Email', 'Mobile', 'Department', 'Designation', 'Joined', 'CL', 'SL', 'Status', ''], l.map(function (e) {
-      return '<tr><td>' + esc(e.id) + '</td><td>' + esc(e.name) + '</td><td>' + esc(e.email) + '</td><td>' + esc(e.phone) + '</td><td>' + esc(e.department) + '</td><td>' + esc(e.designation) + '</td><td>' + fd(e.joining) + '</td><td class="num">' + e.cl + '</td><td class="num">' + e.sl + '</td><td>' + badge(e.status) + '</td><td><button class="btn sm" data-a="empForm" data-id="' + esc(e.id) + '">Edit</button></td></tr>';
-    }), 'No employees found.', true) + '</div>');
+    var own = S.user && S.user.role === 'OWNER';
+    var act = l.filter(function (e) { return e.status === 'Active'; }).length;
+    var withCL = l.filter(function (e) { return e.allowed.indexOf('CL') > -1; }).length;
+    var rows = l.length ? l.map(function (e) {
+      var on = e.status === 'Active';
+      return '<div class="ep-g ep-r' + (on ? '' : ' off') + '">' +
+        '<div class="ep-nm"><div class="ep-mo">' + esc(ini_(e.name)) + '</div><div><b>' + esc(e.name) + '</b><small>' + esc(e.id) + '</small></div></div>' +
+        '<div class="ep-ct"><div>' + esc(e.email || '-') + '</div><small>' + esc(e.phone || '-') + '</small></div>' +
+        '<div class="ep-dp"><div>' + esc(e.department || '-') + '</div><small>Joined ' + (fd(e.joining) || '-') + '</small></div>' +
+        epNum(e.allowed, 'CL', e.cl) + epNum(e.allowed, 'SL', e.sl) +
+        '<div class="ep-sx"><span class="ep-sd ' + (on ? 'on' : 'of') + '"><i></i>' + esc(e.status) + '</span></div>' +
+        '<div class="ep-ac"><button class="ep-b p" data-a="empForm" data-id="' + esc(e.id) + '">Edit</button>' +
+        (own ? '<button class="ep-b d" data-a="empDel" data-id="' + esc(e.id) + '" data-n="' + esc(e.name) + '">Delete</button>' : '') + '</div></div>';
+    }).join('') : '<div class="ld">No employees found.</div>';
+    main('<h2>Employees</h2><p><button class="btn" data-a="empForm">+ New employee</button>' +
+      (own ? ' <button class="btn gr" data-a="binOpen">Bin</button>' : '') + '</p>' +
+      '<div class="ep-sg"><div class="ep-st"><span>Employees</span><b>' + l.length + '</b></div><div class="ep-st"><span>Active</span><b>' + act + '</b></div><div class="ep-st"><span>Inactive</span><b>' + (l.length - act) + '</b></div><div class="ep-st"><span>With casual leave</span><b>' + withCL + '</b></div></div>' +
+      '<div class="ep-pn"><div class="ep-tb"><b>Employee directory</b><span>' + l.length + ' records</span></div>' +
+      '<div class="ep-g ep-h"><div>Employee</div><div>Contact</div><div>Department</div><div class="c">CL</div><div class="c">SL</div><div>Status</div><div></div></div>' + rows + '</div>');
   });
 };
 H.empForm = function (d) {
   var e = d.id ? S.emps.filter(function (x) { return x.id === d.id; })[0] : {}; S.editId = d.id || '';
-  modal(d.id ? 'Edit employee ' + d.id : 'Add employee', '<div class="row"><div>' + fld('Full name', '<input type="text" id="en" value="' + esc(e.name) + '">') + '</div><div>' + fld('Status', '<select id="es">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], e.status || 'Active') + '</select>') + '</div></div><div class="row"><div>' + fld('Email', '<input type="text" id="ee" value="' + esc(e.email) + '">') + '</div><div>' + fld('Mobile (10 digits)', '<input type="text" id="ep" value="' + esc(e.phone) + '">') + '</div></div><div class="row"><div>' + fld('Department', '<input type="text" id="ed" value="' + esc(e.department) + '">') + '</div><div>' + fld('Designation', '<input type="text" id="eg" value="' + esc(e.designation) + '">') + '</div></div>' + fld('Joining date', '<input type="date" id="ej" value="' + esc(e.joining) + '">', 'Employees log in with the email or mobile number saved here.'), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="empSave">Save</button>');
+  modal(d.id ? 'Edit employee ' + d.id : 'Add employee', '<div class="row"><div>' + fld('Full name', '<input type="text" id="en" value="' + esc(e.name) + '">') + '</div><div>' + fld('Status', '<select id="es">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], e.status || 'Active') + '</select>') + '</div></div><div class="row"><div>' + fld('Email', '<input type="text" id="ee" value="' + esc(e.email) + '">') + '</div><div>' + fld('Mobile (10 digits)', '<input type="text" id="ep" value="' + esc(e.phone) + '">') + '</div></div><div class="row"><div>' + fld('Department', '<input type="text" id="ed" value="' + esc(e.department) + '">') + '</div><div>' + fld('Designation', '<input type="text" id="eg" value="' + esc(e.designation) + '">') + '</div></div>' + fld('Joining date', '<input type="date" id="ej" value="' + esc(e.joining) + '">', 'Employees log in with the email or mobile number saved here.') + fld('Leave types this employee can use', ['CL', 'SL', 'OTHER'].map(function (k) {
+    return '<label class="hb"><input type="checkbox" id="al_' + k + '"' + ((e.allowed || ['CL', 'SL', 'OTHER']).indexOf(k) > -1 ? ' checked' : '') + '> ' + LT[k] + '</label>';
+  }).join('')), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="empSave">Save</button>');
 };
-H.empSave = function (d, b) { run(b, function () { return A('saveEmployee', { id: S.editId, name: v('en'), status: v('es'), email: v('ee'), phone: v('ep'), department: v('ed'), designation: v('eg'), joiningDate: v('ej') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.empSave = function (d, b) { run(b, function () { return A('saveEmployee', { id: S.editId, name: v('en'), status: v('es'), email: v('ee'), phone: v('ep'), department: v('ed'), designation: v('eg'), joiningDate: v('ej'), allowed: ['CL', 'SL', 'OTHER'].filter(function (k) { return v('al_' + k); }) }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.empDel = function (d) {
+  ask('Move ' + d.n + ' (' + d.id + ') to the Bin? They will be blocked from logging in. You can restore them within 30 days; after that all their records are permanently deleted.', 'Yes, move to Bin', 'bad').then(function (y) {
+    if (y) run(null, function () { return A('deleteEmployee', { id: d.id }).then(function (r) { toast(r.message); reload(); }); });
+  });
+};
+
+H.binOpen = function (d, b) {
+  run(b, function () {
+    return A('binList').then(function (r) {
+      modal('Deleted employees (Bin)', '<div class="msg i">Deleted employees are kept for ' + r.days + ' days, then permanently removed.</div>' +
+        tbl(['ID', 'Name', 'Deleted', 'By', 'Days left', ''], r.list.map(function (x) {
+          return '<tr><td>' + esc(x.id) + '</td><td>' + esc(x.name) + '</td><td>' + esc(x.at) + '</td><td>' + esc(x.by) + '</td><td class="num">' + x.left + '</td><td><button class="btn sm ok" data-a="binRestore" data-id="' + esc(x.id) + '">Restore</button></td></tr>';
+        }), 'The Bin is empty.'), '<button class="btn gr" data-a="mclose">Close</button><button class="btn bad" data-a="binPurge">Remove expired now</button>');
+    });
+  });
+};
+H.binRestore = function (d) { run(null, function () { return A('binRestore', { id: d.id }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.binPurge = function (d, b) { run(b, function () { return A('binPurgeNow').then(function (r) { toast(r.message); H.binOpen({}, null); }); }); };
+function ini_(n) { return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase(); }
+
+function r2_(n) { return Math.round((Number(n) || 0) * 100) / 100; }
+function sum_(rows, fn) { var t = 0; rows.forEach(function (r) { t += Number(fn(r)) || 0; }); return r2_(t); }
+function ch_(label, val, cls, sign) { return '<span class="mw-ch ' + (cls || '') + '">' + label + ' ' + (sign || '') + val + '</span>'; }
+function stat_(label, val) { return '<div><span>' + label + '</span><b>' + val + '</b></div>'; }
+function who_(name, id) { return '<div class="mw-n"><div class="av">' + esc(ini_(name)) + '</div><div><b>' + esc(name) + '</b><small>' + esc(id) + '</small></div></div>'; }
+
+function allowedOf_(id) {
+  var e = (S.emps || []).filter(function (x) { return x.id === id; })[0];
+  return e && e.allowed ? e.allowed : ['CL', 'SL', 'OTHER'];
+}
+function balList(rows) {
+  if (!rows.length) return '<div class="ld">No employees found.</div>';
+  rows.forEach(function (r) {
+    var al = allowedOf_(r.id), s = r.s;
+    r.show = {
+      CL: al.indexOf('CL') > -1 || s.CL.used > 0,
+      SL: al.indexOf('SL') > -1 || s.SL.used > 0,
+      OL: al.indexOf('OTHER') > -1 || s.OTHER.used > 0
+    };
+  });
+  var clR = rows.filter(function (r) { return r.show.CL; }), slR = rows.filter(function (r) { return r.show.SL; });
+  var top = '<div class="mw-sum">' + stat_('Employees', rows.length) + stat_('CL balance', sum_(clR, function (r) { return r.s.CL.balance; })) + stat_('CL lapsed', sum_(clR, function (r) { return r.s.CL.lapsed; })) + stat_('SL balance', sum_(slR, function (r) { return r.s.SL.balance; })) + '</div>';
+  return top + rows.map(function (r) {
+    var s = r.s, l = '';
+    if (r.show.CL) l += '<div class="mw-l"><span class="mw-lb">CL</span>' + ch_('Credited', s.CL.credited, 'cr', '+') + ch_('Used', s.CL.used, 'us', '-') + ch_('Lapsed', s.CL.lapsed, 'lp', '-') + ch_('Balance', s.CL.balance, 'bal') + '</div>';
+    if (r.show.SL) l += '<div class="mw-l"><span class="mw-lb">SL</span>' + ch_('Credited', s.SL.credited, 'cr', '+') + ch_('Used', s.SL.used, 'us', '-') + ch_('Expired', s.SL.lapsed, 'lp', '-') + ch_('Balance', s.SL.balance, 'bal') + '</div>';
+    if (r.show.OL) l += '<div class="mw-l"><span class="mw-lb">OL</span>' + ch_('Used', s.OTHER.used, 'us', '-') + '</div>';
+    if (!l) l = '<span class="mw-no">No leave types assigned</span>';
+    return '<div class="mw-r">' + who_(r.name, r.id) + '<div class="mw-c col">' + l + '</div><button class="btn sm" data-a="ledger" data-id="' + esc(r.id) + '">Ledger</button></div>';
+  }).join('');
+}
+
+function bonusList(rows) {
+  if (!rows.length) return '<div class="ld">No bonus records yet. Click "Calculate eligibility".</div>';
+  var pend = rows.filter(function (r) { return r.status === 'Pending'; }).length;
+  var top = '<div class="mw-sum">' + stat_('Employees', rows.length) + stat_('Eligible CL', sum_(rows, function (r) { return r.eligible; })) + stat_('Total amount (Rs)', sum_(rows, function (r) { return r.amount; })) + stat_('Pending', pend) + '</div>';
+  return top + rows.map(function (r) {
+    return '<div class="mw-r' + (r.eligible > 0 ? ' cur' : ' mut') + '">' + who_(r.name, r.empId) + '<div class="mw-c">' +
+      ch_('CL lapsed', r.lapsed, r.lapsed ? 'lp' : '') + ch_('Eligible CL', r.eligible, 'el') + ch_('Amount Rs', r.amount, r.amount ? 'am' : '') +
+      badge(r.status) + '<span class="mw-ch">Payment ' + (fd(r.payDate) || '-') + '</span>' + (r.remarks ? '<span class="mw-ch">' + esc(r.remarks) + '</span>' : '') +
+      '</div><button class="btn sm" data-a="bonusEdit" data-id="' + esc(r.empId) + '">Update</button></div>';
+  }).join('');
+}
+
 
 /* ======================= ADMIN: balances & ledger ======================= */
 PG.bal = function () {
   var y = S.by || '';
-  return A('balanceSummary', { year: y }).then(function (d) {
+  return Promise.all([S.emps.length ? S.emps : A('listEmployees'), A('balanceSummary', { year: y })]).then(function (r) {
+    S.emps = r[0]; var d = r[1];
     S.by = d.year; var yrs = []; for (var i = d.year - 3; i <= d.year + 1; i++) yrs.push([i, i]);
-    main('<h2>Leave Balances & Ledger</h2><div class="bar"><div>' + fld('Year', '<select id="by" data-ch="by">' + opts(yrs, d.year) + '</select>') + '</div></div><div class="card">' + tbl(['Employee', 'CL credited', 'CL used', 'CL lapsed', 'CL balance', 'SL credited', 'SL used', 'SL expired', 'SL balance', 'Other used', ''], d.rows.map(function (r) {
-      var s = r.s; return '<tr><td>' + esc(r.name) + '<div class="hint">' + esc(r.id) + '</div></td><td class="num">' + s.CL.credited + '</td><td class="num">' + s.CL.used + '</td><td class="num">' + s.CL.lapsed + '</td><td class="num"><b>' + s.CL.balance + '</b></td><td class="num">' + s.SL.credited + '</td><td class="num">' + s.SL.used + '</td><td class="num">' + s.SL.lapsed + '</td><td class="num"><b>' + s.SL.balance + '</b></td><td class="num">' + s.OTHER.used + '</td><td><button class="btn sm" data-a="ledger" data-id="' + esc(r.id) + '">Ledger</button></td></tr>';
-    }), 'No employees found.', true) + '</div>');
+    main('<h2>Leave Balances & Ledger</h2><div class="pr-only">' + esc(CO) + ' - Printed on ' + new Date().toLocaleDateString('en-GB') + '</div>' +
+      '<div class="bar"><div>' + fld('Year', '<select id="by" data-ch="by">' + opts(yrs, d.year) + '</select>') + '</div>' +
+      '<div><button class="btn gr" data-a="balPrint">&#128424; Print</button></div></div>' +
+      '<div class="card mw"><h3>All employees ' + d.year + '</h3><div class="hint" style="margin:-6px 0 0">Click Ledger to see month-by-month details.</div>' + balList(d.rows) + '</div>');
   });
 };
 CHG.by = function () { S.by = v('by'); reload(); };
+H.balPrint = function () { window.print(); };
 H.ledger = function (d, b) {
   S.lid = d.id;
   run(b, function () {
     return A('ledger', { employeeId: d.id, year: S.by }).then(function (r) {
-      modal('Ledger - ' + d.id + ' (' + r.year + ')', tableMonths(r.tables.CL, 'Casual Leave', '') + tableMonths(r.tables.SL, 'Sick Leave', '') + '<div class="card"><h3>Transactions</h3>' + tbl(['Date', 'Type', 'Transaction', 'Month', 'Credit', 'Debit', 'Open', 'Close', 'Application', 'Remarks', 'By'], r.rows.map(function (l) {
-        return '<tr><td>' + esc(l.at) + '</td><td>' + l.type + '</td><td>' + l.tx + '</td><td>' + l.month + '</td><td class="num">' + l.credit + '</td><td class="num">' + l.debit + '</td><td class="num">' + l.opening + '</td><td class="num">' + l.closing + '</td><td>' + esc(l.app) + '</td><td>' + esc(l.remarks) + '</td><td>' + esc(l.by) + '</td></tr>';
+      modal('Ledger - ' + d.id + ' (' + r.year + ')', monthCards(r.tables.CL, 'Casual leave ' + r.year, 'Each month is separate. Unused leave lapses at month end.', 'CL', Number(r.year)) + monthCards(r.tables.SL, 'Sick leave ' + r.year, '', 'SL', Number(r.year)) + '<div class="card"><h3>Transactions</h3>' + tbl(['Date', 'Type', 'Transaction', 'Month', 'Credit', 'Debit', 'Open', 'Close', 'Application', 'Remarks', 'By'], r.rows.map(function (l) {
+        return '<tr><td>' + esc(l.at) + '</td><td>' + l.type + '</td><td>' + l.tx + '</td><td>' + l.month + '</td><td class="num">' + l.credit + '</td><td class="num">' + l.debit + '</td><td class="num">' + l.opening + '</td><td class="num"' + (l.closing < 0 ? ' style="color:#c0392b;font-weight:700"' : '') + '>' + l.closing + '</td><td>' + esc(l.app) + '</td><td>' + esc(l.remarks) + '</td><td>' + esc(l.by) + '</td></tr>';
       })) + '</div>', '<button class="btn gr" data-a="mclose">Close</button><button class="btn" data-a="adjForm">Adjust balance</button>');
       document.querySelector('.md').style.maxWidth = '1100px';
     });
@@ -477,17 +942,27 @@ H.unaSave = function (d, b) {
 
 /* ======================= ADMIN: Diwali bonus ======================= */
 PG.bonus = function () {
-  return A('bonusList', { year: S.byr }).then(function (d) {
+  return A('bonusCompute', { year: S.byr || '' })
+    .catch(function (e) {
+      if (e.code === 'AUTH') throw e;
+      // fall back to the saved list (e.g. restricted admin, or cutoff problem)
+      return A('bonusList', { year: S.byr }).then(function (d) { d.autoErr = e.message; return d; });
+    })
+    .then(function (d) {
+    if (d.restricted) {
+      main('<h2>Diwali Bonus</h2><div class="card" style="text-align:center;padding:40px 20px;border:1px dashed #b9c6d4"><div style="font-size:30px">&#128274;</div><h3 style="margin-top:8px">Bonus details are restricted</h3><p class="mut" style="max-width:380px;margin:6px auto 0">Employee-wise eligibility, amounts and payment status can be viewed by the Owner admin only.</p></div>');
+      return;
+    }
     S.byr = d.year; S.bon = d;
-    main('<h2>Diwali Bonus</h2><div class="msg i">Only Casual Leave that actually lapsed on or before the cutoff date counts. Used CL and CL not yet lapsed at the cutoff are excluded. Cutoff date, payment date and formula are set in <b>Settings &gt; Diwali Bonus</b>.</div><div class="card"><div class="bar"><div>' + fld('Bonus year', '<input type="number" id="by2" value="' + d.year + '">') + '</div><div>' + fld('Cutoff date', '<input type="date" id="bc" value="' + esc(d.cutoff) + '">') + '</div><div><button class="btn" data-a="bonusCalc">Calculate eligibility</button></div></div><div class="hint">Formula mode: ' + esc(d.mode) + (d.mode === 'PER_CL' ? ' (Rs ' + d.perCl + ' per eligible CL)' : ' (amount entered manually)') + '. Processed and Paid records are never overwritten by recalculation.</div></div><div class="card">' +
-      tbl(['Employee', 'CL lapsed before cutoff', 'Eligible CL', 'Cutoff', 'Amount (Rs)', 'Status', 'Payment date', 'Remarks', ''], d.rows.map(function (r) {
-        return '<tr><td>' + esc(r.name) + '<div class="hint">' + esc(r.empId) + '</div></td><td class="num">' + r.lapsed + '</td><td class="num"><b>' + r.eligible + '</b></td><td>' + fd(r.cutoff) + '</td><td class="num">' + esc(r.amount) + '</td><td>' + badge(r.status) + '</td><td>' + fd(r.payDate) + '</td><td>' + esc(r.remarks) + '</td><td><button class="btn sm" data-a="bonusEdit" data-id="' + esc(r.empId) + '">Update</button></td></tr>';
-      }), 'No bonus records yet. Click "Calculate eligibility".', true) + '</div>');
+    main('<h2>Diwali Bonus</h2>' + ((d.warn || d.autoErr) ? '<div class="msg w">' + esc(d.warn || d.autoErr) + '</div>' : '') + '<div class="msg i">Only Casual Leave that actually lapsed on or before the cutoff date counts. Used CL and CL not yet lapsed at the cutoff are excluded. Cutoff date, payment date and formula are set in <b>Settings &gt; Diwali Bonus</b>.</div>' +
+      '<div class="card"><div class="bar"><div>' + fld('Bonus year', '<input type="number" id="by2" value="' + d.year + '">') + '</div><div>' + fld('Cutoff date', '<input type="date" id="bc" value="' + esc(d.cutoff) + '">') + '</div><div><button class="btn" data-a="bonusCalc">Calculate eligibility</button></div></div><div class="hint">Rule in use: <b>' + esc(d.rule.name) + '</b> (' + esc(d.rule.desc) + '). Change it in Settings &gt; Diwali Bonus. Processed and Paid records are never overwritten by recalculation.</div></div>' +
+      '<div class="card mw"><h3>Employee-wise bonus ' + d.year + '</h3><div class="hint" style="margin:-6px 0 0">Cutoff: <b>' + fd(d.cutoff) + '</b>. Highlighted rows have eligible CL.</div>' + bonusList(d.rows) + '</div>');
   });
 };
-H.bonusCalc = function (d, b) { S.byr = v('by2'); run(b, function () { return A('bonusCompute', { year: v('by2'), cutoff: v('bc') }).then(function () { toast('Eligibility calculated.'); reload(); }); }); };
+H.bonusCalc = function (d, b) { S.byr = v('by2'); run(b, function () { return A('bonusCompute', { year: v('by2'), cutoff: v('bc') }).then(function (r) { toast('Eligibility calculated.'); if (r.warn) toast(r.warn, true); reload(); }); }); };
 H.bonusEdit = function (d) {
-  var r = S.bon.rows.filter(function (x) { return x.empId === d.id; })[0]; S.bid = d.id;
+  var r = S.bon && S.bon.rows.filter(function (x) { return x.empId === d.id; })[0]; S.bid = d.id;
+  if (!r) { toast('Open the Diwali Bonus page first.', true); return; }
   modal('Bonus - ' + r.name, '<div class="kv"><b>Eligible CL</b><span>' + r.eligible + '</span></div><div class="row"><div>' + fld('Status', '<select id="bs">' + opts([['Pending', 'Pending'], ['Processed', 'Processed'], ['Paid', 'Paid']], r.status) + '</select>') + '</div><div>' + fld('Final bonus amount (Rs)', '<input type="number" id="ba" value="' + esc(r.amount) + '">') + '</div><div>' + fld('Payment date', '<input type="date" id="bp" value="' + esc(r.payDate) + '">') + '</div></div>' + fld('Processing remarks', '<input type="text" id="br" value="' + esc(r.remarks) + '">'), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="bonusSave">Save</button>');
 };
 H.bonusSave = function (d, b) { run(b, function () { return A('bonusSave', { year: S.byr, employeeId: S.bid, status: v('bs'), amount: v('ba'), paymentDate: v('bp'), remarks: v('br') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
@@ -517,14 +992,41 @@ function ctl(it) {
   if (it.type === 'time') return '<input type="time"' + base + ' value="' + esc(val) + '">';
   return '<input type="text"' + base + ' value="' + esc(val) + '">';
 }
+function ruleRows(br) {
+  if (!br || br.restricted) return '';
+  return '<div style="border-top:1px solid var(--line);padding:10px 0"><div class="row" style="align-items:center"><div style="flex:2"><b>Bonus rules</b><div class="hint">The rule marked "In use" is used when you press Calculate eligibility on the Diwali Bonus page. Press + to add your own rule.</div></div><div style="flex:1.4;text-align:right">' + (br.canEdit ? '<button class="btn sm" data-a="ruleForm">+ Add rule</button>' : '') + '</div></div>' +
+    br.rules.map(function (r) {
+      var on = r.id === br.active;
+      return '<div class="mw-r' + (on ? ' cur' : '') + '"><div class="mw-c col"><b>' + esc(r.name) + '</b><span class="hint">' + esc(r.desc) + '</span></div>' +
+        (on ? '<span class="mw-tag">In use</span>' : '') +
+        (br.canEdit ? (on ? '' : '<button class="btn sm ok" data-a="ruleUse" data-id="' + esc(r.id) + '">Use this</button>') +
+          (r.locked ? '' : ' <button class="btn sm gr" data-a="ruleForm" data-id="' + esc(r.id) + '">Edit</button>') +
+          ((r.locked || on) ? '' : ' <button class="btn sm bad" data-a="ruleDel" data-id="' + esc(r.id) + '">Delete</button>') : '') + '</div>';
+    }).join('') + '</div>';
+}
 PG.set = function () {
-  return A('getSettings').then(function (d) {
-    var groups = [], by = {};
+  return Promise.all([A('getSettings'), A('bonusRules')]).then(function (x) {
+    var d = x[0], br = x[1], groups = [], by = {};
+    S.brules = br;
     d.items.forEach(function (it) { if (!by[it.group]) { by[it.group] = []; groups.push(it.group); } by[it.group].push(it); });
-    main('<h2>Settings</h2><div class="msg i">All company rules are managed here - no code changes needed. Changes take effect immediately and are recorded in the System Log.' + (d.canEditAccess ? '' : ' <b>Admin Access settings can be changed only by the Owner admin.</b>') + '</div><p><button class="btn" data-a="setSave">Save all changes</button> <button class="btn gr" data-a="runMaint">Run daily maintenance now</button> <button class="btn gr" data-a="remNow">Send pending reminder now</button></p>' +
-      groups.map(function (g) { return '<div class="card"><h3>' + esc(g) + '</h3>' + by[g].map(function (it) { return '<div class="row" style="align-items:center;border-top:1px solid var(--line);padding:8px 0"><div style="flex:2"><b>' + esc(friendly(it.key)) + '</b><div class="hint">' + esc(it.desc) + '</div></div><div style="flex:1.4">' + ctl(it) + '</div></div>'; }).join('') + '</div>'; }).join('') + '<p><button class="btn" data-a="setSave">Save all changes</button></p>');
+    main('<h2>Settings</h2><div class="msg i">All company rules are managed here - no code changes needed. Changes take effect immediately and are recorded in the System Log.' + (d.canEditAccess ? '' : ' <b>Admin Access and Employees settings can be changed only by the Owner admin.</b>') + '</div><p><button class="btn" data-a="setSave">Save all changes</button> <button class="btn gr" data-a="runMaint">Run daily maintenance now</button> <button class="btn gr" data-a="remNow">Send pending reminder now</button></p>' +
+      groups.map(function (g) {
+        return '<div class="card"><h3>' + esc(g) + '</h3>' + by[g].map(function (it) { return '<div class="row" style="align-items:center;border-top:1px solid var(--line);padding:8px 0"><div style="flex:2"><b>' + esc(friendly(it.key)) + '</b><div class="hint">' + esc(it.desc) + '</div></div><div style="flex:1.4">' + ctl(it) + '</div></div>'; }).join('') + (g === 'Diwali Bonus' ? ruleRows(br) : '') + '</div>';
+      }).join('') + '<p><button class="btn" data-a="setSave">Save all changes</button></p>');
   });
 };
+H.ruleForm = function (d) {
+  var br = S.brules, r = d.id ? br.rules.filter(function (x) { return x.id === d.id; })[0] : { type: 'FLAT', value: '' };
+  S.rid = d.id || '';
+  modal(d.id ? 'Edit bonus rule' : 'Add bonus rule',
+    fld('Rule name', '<input type="text" id="rn" maxlength="60" value="' + esc(r.name || '') + '" placeholder="e.g. Rs 500 per CL">') +
+    fld('Rule type', '<select id="rt">' + opts(br.types, r.type) + '</select>') +
+    fld('Value', '<input type="number" step="any" min="0" id="rv" value="' + esc(r.value === 0 ? '' : r.value) + '">', 'Flat types: amount in Rs. Manual ignores the value.'),
+    '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="ruleSave">Save rule</button>');
+};
+H.ruleSave = function (d, b) { run(b, function () { return A('bonusRuleSave', { id: S.rid, name: v('rn'), type: v('rt'), value: v('rv') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.ruleUse = function (d, b) { run(b, function () { return A('bonusRuleUse', { id: d.id }).then(function (r) { toast(r.message); reload(); }); }); };
+H.ruleDel = function (d) { ask('Delete this bonus rule?', 'Yes, delete', 'bad').then(function (y) { if (y) run(null, function () { return A('bonusRuleDelete', { id: d.id }).then(function (r) { toast(r.message); reload(); }); }); }); };
 H.setSave = function (d, b) {
   var ch = {}; $$('[data-k]').forEach(function (e) { if (!e.disabled && String(e.value) !== String(e.getAttribute('data-o'))) ch[e.getAttribute('data-k')] = e.value; });
   if (!Object.keys(ch).length) { toast('No changes to save.'); return; }
@@ -537,7 +1039,7 @@ H.remNow = function (d, b) { run(b, function () { return A('sendReminderNow').th
 PG.admins = function () {
   return A('listAdmins').then(function (d) {
     S.adl = d.list;
-    main('<h2>Administrators</h2>' + (d.canEdit ? '<p><button class="btn" data-a="admForm">+ Add administrator</button></p>' : '<div class="msg w">Only the Owner admin can add or edit administrators.</div>') + '<div class="card">' + tbl(['ID', 'Name', 'Email', 'Mobile', 'Role', 'Status', 'Password set', ''], d.list.map(function (a) { return '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.name) + '</td><td>' + esc(a.email) + '</td><td>' + esc(a.phone) + '</td><td>' + a.role + '</td><td>' + badge(a.status) + '</td><td>' + (a.hasPassword ? 'Yes' : 'No - use Forgot password') + '</td><td>' + (d.canEdit ? '<button class="btn sm" data-a="admForm" data-id="' + esc(a.id) + '">Edit</button>' : '') + '</td></tr>'; })) + '</div><div class="hint">Security codes for password reset are sent to the administrator\'s registered email address.</div>');
+    main('<h2>Administrators</h2>' + (d.canEdit ? '<p><button class="btn" data-a="admForm">+ Add administrator</button></p>' : '<div class="msg w">Only the Owner admin can add or edit administrators.</div>') + '<div class="card">' + tbl(['ID', 'Name', 'Email', 'Mobile', 'Role', 'Status', 'Password set', ''], d.list.map(function (a) { return '<tr><td>' + esc(a.id) + '</td><td>' + esc(a.name) + '</td><td>' + esc(a.email) + '</td><td>' + esc(a.phone) + '</td><td>' + a.role + '</td><td>' + badge(a.status) + '</td><td>' + (a.hasPassword ? 'Yes' : 'No - use Forgot password') + '</td><td>' + (d.canEdit ? '<button class="btn sm" data-a="admForm" data-id="' + esc(a.id) + '">Edit</button>' + (S.user && S.user.id !== a.id ? ' <button class="btn sm bad" data-a="admDel" data-id="' + esc(a.id) + '" data-n="' + esc(a.name) + '">Delete</button>' : '') : '') + '</td></tr>'; })) + '</div><div class="hint">Administrators can use an email address from any domain. Security codes for password reset are sent to the administrator\'s registered email address.</div>');
   });
 };
 H.admForm = function (d) {
@@ -545,6 +1047,11 @@ H.admForm = function (d) {
   modal(d.id ? 'Edit administrator' : 'Add administrator', '<div class="row"><div>' + fld('Name', '<input type="text" id="an" value="' + esc(a.name) + '">') + '</div><div>' + fld('Email', '<input type="text" id="ae2" value="' + esc(a.email) + '">') + '</div></div><div class="row"><div>' + fld('Mobile (10 digits, optional)', '<input type="text" id="ap" value="' + esc(a.phone) + '">') + '</div><div>' + fld('Role', '<select id="ar">' + opts([['ADMIN', 'Admin'], ['OWNER', 'Owner']], a.role || 'ADMIN') + '</select>') + '</div><div>' + fld('Status', '<select id="as2">' + opts([['Active', 'Active'], ['Inactive', 'Inactive']], a.status || 'Active') + '</select>') + '</div></div>', '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="admSave">Save</button>');
 };
 H.admSave = function (d, b) { run(b, function () { return A('saveAdmin', { id: S.aid, name: v('an'), email: v('ae2'), phone: v('ap'), role: v('ar'), status: v('as2') }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+H.admDel = function (d) {
+  ask('Permanently delete administrator ' + d.n + ' (' + d.id + ')? They will no longer be able to sign in. This cannot be undone.', 'Yes, delete', 'bad').then(function (y) {
+    if (y) run(null, function () { return A('deleteAdmin', { id: d.id }).then(function (r) { toast(r.message); reload(); }); });
+  });
+};
 PG.log = function () {
   var f = S.lf || {};
   main('<h2>System Log</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="lq" value="' + esc(f.q || '') + '">') + '</div><div>' + fld('Module', '<select id="lmod">' + opts(['SECURITY', 'LEAVE', 'LEDGER', 'EMPLOYEE', 'ADMIN', 'SETTINGS', 'BONUS', 'UNAUTHORIZED', 'HOLIDAY', 'NOTIFICATION', 'SYSTEM'].map(function (x) { return [x, x]; }), f.module, 'All') + '</select>') + '</div><div><button class="btn" data-a="lGo">Search</button></div></div><div id="ll" class="ld">Loading...</div><div class="hint">Showing the latest 300 matching entries. The log is append-only through the application; administrators cannot edit or delete entries here.</div></div>');
@@ -563,11 +1070,10 @@ H.pwSave = function (d, b) { run(b, function () { return A('changePassword', { c
     S.role = st.role; S.token = st.token; S.user = st.user; S.cfg = st.cfg || {}; $('#boot').style.display = 'none'; shell();
     if (S.role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
     H.go({ p: S.role === 'emp' ? 'home' : 'dash' });
+    if (S.role === 'emp') { var okp = null; try { okp = sessionStorage.getItem('kla'); } catch (e) { } if (!okp) showPolicy(); }
   } else login();
 })();
 })();
 </script>
 </body>
 </html>
-
-
