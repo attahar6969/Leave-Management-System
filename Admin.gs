@@ -5,9 +5,8 @@
  * settings, admins, system log.
  */
 
-
 function nextId_(prefix, key, col) {
-  let max = 0;
+  let max = parseInt(PropertiesService.getScriptProperties().getProperty('MAXID_' + prefix) || '0', 10) || 0;
   readAll_(key).forEach(r => { const m = new RegExp('^' + prefix + '-(\\d+)$').exec(String(r[col])); if (m) max = Math.max(max, parseInt(m[1], 10)); });
   return prefix + '-' + pad_(max + 1, 3);
 }
@@ -24,7 +23,6 @@ function filterApps_(apps, p) {
     return true;
   }).sort((a, b) => b['Submission Timestamp'] - a['Submission Timestamp']);
 }
-
 
 /* ================= DASHBOARD ================= */
 function adminDashboard_(ctx, p) {
@@ -56,6 +54,36 @@ function adminDashboard_(ctx, p) {
   let diwali = null;
   const cutoff = parseYmd_(S_('BONUS_CUTOFF_DATE'));
   if (cutoff) { const m = lapsedBeforeCutoff_(led, SN_('BONUS_YEAR'), cutoff); diwali = r2_(Object.keys(m).reduce((s, k) => s + m[k], 0)); }
+  // ---- employee cards: used / CL lapsed (till Diwali cutoff) / balances ----
+  const cardStatus = p.status || 'APPROVED';
+  const dFrom = p.fromDate || '', dTo = p.toDate || '';
+  const usedBy = {};
+  apps.filter(a => a['Status'] === cardStatus).forEach(a => {
+    if (!(a['From Date'] instanceof Date) || !(a['To Date'] instanceof Date)) return;
+    const n = leaveDays_(a['From Date'], a['To Date'])
+      .filter(d => (!dFrom || iso_(d) >= dFrom) && (!dTo || iso_(d) <= dTo)).length;
+    const id = String(a['Employee ID']);
+    if (!usedBy[id]) usedBy[id] = { CL: 0, SL: 0, OTHER: 0 };
+    usedBy[id][a['Leave Type']] += n;
+  });
+  const lapsedMap = cutoff ? lapsedBeforeCutoff_(led, y, cutoff) : null;
+  const ledIdx = ledIndex_(led);
+  const balMonth = y === t.getFullYear() ? t.getMonth() + 1 : 12;
+  const empCards = emps.filter(e => {
+    if (e['Status'] === 'Deleted') return false;
+    const id = String(e['Employee ID']);
+    if (p.employeeId && id !== String(p.employeeId)) return false;
+    return e['Status'] === 'Active' || !!usedBy[id];
+  }).map(e => {
+    const id = String(e['Employee ID']), u = usedBy[id] || { CL: 0, SL: 0, OTHER: 0 };
+    return {
+      id: id, name: String(e['Employee Name']), allowed: allowedLeaves_(e),
+      clUsed: u.CL, slUsed: u.SL, otherUsed: u.OTHER,
+      clLapsed: lapsedMap ? (lapsedMap[id] || 0) : null,
+      clBalance: balNow_(ledIdx, id, 'CL', y, balMonth),
+      slRemaining: balNow_(ledIdx, id, 'SL', y, balMonth)
+    };
+  }).sort((a, b) => (b.clUsed + b.slUsed + b.otherUsed) - (a.clUsed + a.slUsed + a.otherUsed) || a.name.localeCompare(b.name));
   const years = {}; years[t.getFullYear()] = 1; years[t.getFullYear() + 1] = 1;
   allApps.forEach(a => { if (a['From Date'] instanceof Date) years[a['From Date'].getFullYear()] = 1; });
   return plain_({
@@ -65,13 +93,12 @@ function adminDashboard_(ctx, p) {
       rejected: status.REJECTED, clUsed: r2_(clUsed), slUsed: r2_(slUsed), onLeave: onLeave.length, diwaliCl: diwali,
       unauthorized: readAll_('UNA').filter(u => u['Incident Date'] instanceof Date && u['Incident Date'].getFullYear() === y).length
     },
-    status: status, monthly: monthly, typeDist: typeDist,
+    status: status, monthly: monthly, typeDist: typeDist, empCards: empCards, cutoffSet: !!cutoff,
     empSummary: Object.keys(perEmp).map(k => perEmp[k]).sort((a, b) => b.total - a.total),
     recent: apps.slice(0, 8).map(appOut_), pending: allApps.filter(a => a['Status'] === 'PENDING').sort((a, b) => a['Submission Timestamp'] - b['Submission Timestamp']).map(appOut_),
     onLeaveList: onLeave
   });
 }
-
 
 /* ================= APPLICATIONS ================= */
 function adminListApplications_(ctx, p) {
@@ -109,7 +136,6 @@ function ledOut_(r) {
     app: r['Related Application ID'], remarks: r['Remarks'], at: dt_(r['Created At']), by: r['Created By']
   };
 }
-
 
 function adminApprove_(ctx, p) {
   let app = null;
@@ -168,7 +194,7 @@ function adminCancelApproved_(ctx, p) {
     const rows = readAll_('LED'), idx = ledIndex_(rows), out = [];
     postReversal_(idx, out, ctx.email, rows, a['Application ID'], 'Reversal: approved leave cancelled - ' + reason);
     appendMany_('LED', out);
-    updateObj_('APP', a._row, { 'Status': 'CANCELLED', 'Admin Remarks': reason, 'Reviewed By': ctx.email, 'Reviewed At': new Date(), 'Updated At': new Date() });
+    updateObj_('APP', a._row, { 'Status': 'CANCELLED', 'Admin Remarks': 'Cancelled by Admin: ' + reason, 'Reviewed By': ctx.email, 'Reviewed At': new Date(), 'Updated At': new Date() });
     refreshEmpBalances_();
     log_(ctx, 'APPROVED_LEAVE_CANCELLED', 'LEAVE', a['Application ID'], 'APPROVED', 'CANCELLED', reason + ' | reversal entries: ' + out.length, 'SUCCESS');
     app = getApp_(a['Application ID']);
@@ -176,7 +202,6 @@ function adminCancelApproved_(ctx, p) {
   notifyEmployee_(app, 'CANCELLED');
   return { message: 'Leave cancelled and the balance restored through reversal entries.' };
 }
-
 
 function adminOpts_(p) {
   return { admin: true, noticeOverride: !!p.noticeOverride, negOverride: !!p.negOverride, overrideReason: p.overrideReason };
@@ -238,10 +263,9 @@ function adminUpdateLeave_(ctx, p) {
   return { message: 'Leave record updated. Old and new values were logged.' };
 }
 
-
 /* ================= EMPLOYEES ================= */
 function adminListEmployees_(ctx) {
-  return plain_(readAll_('EMP').map(empOut_));
+  return plain_(readAll_('EMP').filter(e => e['Status'] !== 'Deleted').map(empOut_));
 }
 function adminSaveEmployee_(ctx, p) {
   let result = null;
@@ -261,8 +285,17 @@ function adminSaveEmployee_(ctx, p) {
     });
     const jd = String(p.joiningDate || '').trim() ? parseYmd_(p.joiningDate) : '';
     if (jd === null) fail_('Joining date is not valid.');
+    if (!cur && !jd) fail_('Joining date is required for a new employee.');
     const now = new Date();
-    const data = { 'Employee Name': name, 'Email': email, 'Phone': phone, 'Department': String(p.department || '').trim(), 'Designation': String(p.designation || '').trim(), 'Joining Date': jd, 'Status': status, 'Updated At': now };
+    let allowedStr = null;
+    if (p.allowed !== undefined) {
+      const al = (Array.isArray(p.allowed) ? p.allowed : String(p.allowed).split(','))
+        .map(x => String(x).trim().toUpperCase()).filter(x => ['CL', 'SL', 'OTHER'].indexOf(x) > -1);
+      allowedStr = al.length ? al.join(',') : 'NONE';
+    }
+    const data = { 'Employee Name': name, 'Email': email, 'Phone': phone, 'Department': String(p.department || '').trim(),
+      'Designation': String(p.designation || '').trim(), 'Joining Date': jd, 'Status': status, 'Updated At': now };
+    if (allowedStr !== null) data['Allowed Leaves'] = allowedStr;
     if (cur) {
       const oldV = empOut_(cur);
       updateObj_('EMP', cur._row, data);
@@ -270,21 +303,20 @@ function adminSaveEmployee_(ctx, p) {
       result = { id: cur['Employee ID'], message: 'Employee updated.' };
     } else {
       const id = nextId_('EMP', 'EMP', 'Employee ID');
-      appendObj_('EMP', Object.assign({ 'Employee ID': id, 'CL Balance': 0, 'SL Balance': 0, 'Created At': now }, data));
+      appendObj_('EMP', Object.assign({ 'Employee ID': id, 'CL Balance': 0, 'SL Balance': 0, 'Created At': now, 'Source Sync': 'LMS' }, data));
       log_(ctx, 'EMPLOYEE_ADDED', 'EMPLOYEE', id, '', data, '', 'SUCCESS');
       result = { id: id, message: 'Employee ' + id + ' added.' };
     }
   });
-  withLock_(() => ledgerMaintenance_(ctx.email));      // issue this month's credit to a new / re-activated employee
+  withLock_(() => { cleanupLedgerCore_(ctx.email); ledgerMaintenance_(ctx.email); });
   return result;
 }
-
 
 /* ================= BALANCES / LEDGER ================= */
 function adminBalanceSummary_(ctx, p) {
   const y = p.year ? Number(p.year) : today_().getFullYear();
   const led = readAll_('LED');
-  return plain_({ year: y, rows: readAll_('EMP').map(e => ({ id: e['Employee ID'], name: e['Employee Name'], status: e['Status'], s: summaryFor_(led, e['Employee ID'], y) })) });
+  return plain_({ year: y, rows: readAll_('EMP').filter(e => e['Status'] !== 'Deleted').map(e => ({ id: e['Employee ID'], name: e['Employee Name'], status: e['Status'], s: summaryFor_(led, e['Employee ID'], y) })) });
 }
 function adminLedger_(ctx, p) {
   if (!p.employeeId) fail_('Please select an employee.');
@@ -316,7 +348,6 @@ function adminAdjustBalance_(ctx, p) {
   });
   return { message: 'Balance adjusted. A ledger entry was recorded.' };
 }
-
 
 /* ================= UNAUTHORIZED LEAVE ================= */
 function adminListUnauthorized_(ctx, p) {
@@ -378,8 +409,10 @@ function adminSaveUnauthorized_(ctx, p) {
   return { message: msg };
 }
 
-
 /* ================= DIWALI BONUS ================= */
+function bonusAllowed_(ctx) {
+  return ctx.adminRole === 'OWNER' || SB_('BONUS_ADMIN_VIEW');
+}
 /** CL that actually lapsed (month-end) on or before the cutoff, per employee. Used CL is never counted. */
 function lapsedBeforeCutoff_(ledRows, year, cutoff) {
   const m = {};
@@ -396,41 +429,9 @@ function bonusOut_(b) {
   return { year: b['Bonus Year'], empId: b['Employee ID'], name: b['Employee Name'], lapsed: b['CL Lapsed Before Cutoff'], eligible: b['Eligible CL Count'],
     cutoff: iso_(b['Cutoff Date']), payDate: iso_(b['Payment Date']), amount: b['Bonus Amount'], status: b['Status'], remarks: b['Remarks'], by: b['Updated By'], at: dt_(b['Updated At']) };
 }
-function adminBonusList_(ctx, p) {
-  const y = Number(p.year) || SN_('BONUS_YEAR');
-  return plain_({ year: y, cutoff: S_('BONUS_CUTOFF_DATE'), payment: S_('BONUS_PAYMENT_DATE'), mode: S_('BONUS_FORMULA_MODE'), perCl: SN_('BONUS_AMOUNT_PER_CL'),
-    rows: readAll_('BON').filter(b => Number(b['Bonus Year']) === y).map(bonusOut_) });
-}
-function adminBonusCompute_(ctx, p) {
-  const y = Number(p.year) || SN_('BONUS_YEAR');
-  const cutoff = parseYmd_(p.cutoff || S_('BONUS_CUTOFF_DATE'));
-  if (!cutoff) fail_('Set the Diwali Bonus Cutoff Date first (Settings > Diwali Bonus, or enter it here).');
-  withLock_(() => {
-    ledgerMaintenance_(ctx.email);
-    const map = lapsedBeforeCutoff_(readAll_('LED'), y, cutoff);
-    const existing = readAll_('BON').filter(b => Number(b['Bonus Year']) === y);
-    const pay = parseYmd_(S_('BONUS_PAYMENT_DATE')) || '', now = new Date();
-    const perCl = S_('BONUS_FORMULA_MODE') === 'PER_CL';
-    const newRows = []; let touched = 0;
-    readAll_('EMP').forEach(e => {
-      const n = map[String(e['Employee ID'])] || 0, ex = existing.filter(b => String(b['Employee ID']) === String(e['Employee ID']))[0];
-      if (!ex && String(e['Status']) !== 'Active' && n === 0) return;
-      if (ex) {
-        if (ex['Status'] !== 'Pending') return;                 // Processed / Paid records are locked
-        const ch = { 'CL Lapsed Before Cutoff': n, 'Eligible CL Count': n, 'Cutoff Date': cutoff, 'Updated By': ctx.email, 'Updated At': now };
-        if (perCl) ch['Bonus Amount'] = r2_(n * SN_('BONUS_AMOUNT_PER_CL'));
-        updateObj_('BON', ex._row, ch); touched++;
-      } else {
-        newRows.push({ 'Bonus Year': y, 'Employee ID': e['Employee ID'], 'Employee Name': e['Employee Name'], 'CL Lapsed Before Cutoff': n, 'Eligible CL Count': n,
-          'Cutoff Date': cutoff, 'Payment Date': pay, 'Bonus Amount': perCl ? r2_(n * SN_('BONUS_AMOUNT_PER_CL')) : '', 'Status': 'Pending', 'Remarks': '', 'Updated By': ctx.email, 'Updated At': now });
-      }
-    });
-    appendMany_('BON', newRows);
-    log_(ctx, 'BONUS_ELIGIBILITY_COMPUTED', 'BONUS', String(y), '', { cutoff: iso_(cutoff), new: newRows.length, updated: touched }, '', 'SUCCESS');
-  });
-  return adminBonusList_(ctx, { year: y });
-}
+
 function adminBonusSave_(ctx, p) {
+  if (!bonusAllowed_(ctx)) fail_('Diwali Bonus details are restricted to the Owner admin.');
   withLock_(() => {
     const y = Number(p.year);
     const b = readAll_('BON').filter(r => Number(r['Bonus Year']) === y && String(r['Employee ID']) === String(p.employeeId))[0];
@@ -447,7 +448,6 @@ function adminBonusSave_(ctx, p) {
   });
   return { message: 'Bonus record updated.' };
 }
-
 
 /* ================= HOLIDAYS ================= */
 function adminListHolidays_(ctx, p) {
@@ -476,13 +476,13 @@ function adminSaveHoliday_(ctx, p) {
   return { message: 'Holiday saved.' + warn };
 }
 
-
 /* ================= SETTINGS (edited from the portal) ================= */
+const OWNER_ONLY_GROUPS_ = ['Admin Access', 'Employees'];
 function adminGetSettings_(ctx) {
   const cur = settingsMap_();
   return plain_({
     canEditAccess: ctx.adminRole === 'OWNER',
-    items: defaultSettings_().map(d => ({ group: d[0], key: d[1], value: cur[d[1]] === undefined ? d[2] : cur[d[1]], type: d[3], desc: d[4], locked: d[0] === 'Admin Access' && ctx.adminRole !== 'OWNER' }))
+    items: defaultSettings_().filter(d => d[3] !== 'hidden').map(d => ({ group: d[0], key: d[1], value: cur[d[1]] === undefined ? d[2] : cur[d[1]], type: d[3], desc: d[4], locked: (OWNER_ONLY_GROUPS_.indexOf(d[0]) > -1 || d[1] === 'BONUS_ADMIN_VIEW') && ctx.adminRole !== 'OWNER' }))
   });
 }
 function normSetting_(d, raw) {
@@ -520,8 +520,9 @@ function adminSaveSettings_(ctx, p) {
   keys.forEach(k => {
     const d = defs[k];
     if (!d) fail_('Unknown setting.');
-    if (d[3] === 'readonly') fail_('"' + k + '" cannot be changed.');
-    if (d[0] === 'Admin Access' && ctx.adminRole !== 'OWNER') fail_('Only the Owner admin can change Admin Access settings.');
+    if (d[3] === 'readonly' || d[3] === 'hidden') fail_('"' + k + '" cannot be changed.');
+    if (OWNER_ONLY_GROUPS_.indexOf(d[0]) > -1 && ctx.adminRole !== 'OWNER') fail_('Only the Owner admin can change this setting.');
+    if (k === 'BONUS_ADMIN_VIEW' && ctx.adminRole !== 'OWNER') fail_('Only the Owner admin can change this setting.');
     clean[k] = normSetting_(d, ch[k]);
   });
   let changed = [];
@@ -542,8 +543,7 @@ function adminSaveSettings_(ctx, p) {
   return { message: changed.length ? changed.length + ' setting(s) saved.' : 'No changes were made.', changed: changed };
 }
 
-
-/* ================= ADMIN USERS ================= */
+/* ================= ADMIN USERS (any email domain is allowed) ================= */
 function adminListAdmins_(ctx) {
   return plain_({ canEdit: ctx.adminRole === 'OWNER', list: readAll_('ADM').map(a => ({ id: a['Admin ID'], name: a['Admin Name'], email: a['Email'], phone: String(a['Phone'] || ''), role: a['Role'], status: a['Status'], hasPassword: !!getCred_(a['Admin ID']) })) });
 }
@@ -582,7 +582,6 @@ function adminSaveAdmin_(ctx, p) {
   return { message: msg };
 }
 
-
 /* ================= LOG / UTILITIES ================= */
 function adminListLog_(ctx, p) {
   const q = String(p.q || '').toLowerCase(), mod = String(p.module || '');
@@ -600,3 +599,47 @@ function adminSendReminderNow_(ctx) {
   return { message: r.sent ? 'Reminder sent for ' + r.count + ' pending application(s).' : 'Not sent: ' + r.reason };
 }
 
+/* ================= DELETE HELPERS (Owner only) ================= */
+function purgeRows_(key, col, value) {
+  const sh = sh_(key), n = COLS[key].length, last = sh.getLastRow();
+  if (last < 2) return 0;
+  const idx = COLS[key].indexOf(col);
+  const vals = sh.getRange(2, 1, last - 1, n).getValues();
+  const keep = vals.filter(r => String(r[idx]) !== String(value));
+  const removed = vals.length - keep.length;
+  if (!removed) return 0;
+  sh.getRange(2, 1, vals.length, n).clearContent();
+  if (keep.length) sh.getRange(2, 1, keep.length, n).setValues(keep);
+  return removed;
+}
+
+function resetEmployeeIdCounter() {
+  assertOwnerRun_();
+  if (readAll_('EMP').length > 0) throw new Error('Employees still exist. Delete them first.');
+  PropertiesService.getScriptProperties().deleteProperty('MAXID_EMP');
+}
+function adminDeleteAdmin_(ctx, p) {
+  needOwner_(ctx);
+  let msg = '';
+  withLock_(() => {
+    const list = readAll_('ADM');
+    const a = list.filter(x => String(x['Admin ID']) === String(p.id))[0];
+    if (!a) fail_('Administrator not found.');
+    const id = String(a['Admin ID']);
+    if (id === String(ctx.id)) fail_('You cannot delete your own account.');
+    if (a['Role'] === 'OWNER' && a['Status'] === 'Active') {
+      const others = list.filter(x => x['Role'] === 'OWNER' && x['Status'] === 'Active' && String(x['Admin ID']) !== id).length;
+      if (others < 1) fail_('At least one active Owner admin must remain.');
+    }
+    // keep the ID number from being reused, so old log entries never point to a new person
+    const props = PropertiesService.getScriptProperties();
+    const m = /^ADM-(\d+)$/.exec(id);
+    if (m) props.setProperty('MAXID_ADM', String(Math.max(parseInt(props.getProperty('MAXID_ADM') || '0', 10) || 0, parseInt(m[1], 10))));
+    bumpSessionVersion_(id);   // ends any open session
+    clearCred_(id);            // removes the password
+    sh_('ADM').deleteRow(a._row);
+    log_(ctx, 'ADMIN_DELETED', 'ADMIN', id, { name: a['Admin Name'], email: a['Email'], role: a['Role'], status: a['Status'] }, '', 'Administrator permanently deleted', 'SUCCESS');
+    msg = 'Administrator ' + id + ' deleted.';
+  });
+  return { message: msg };
+}
