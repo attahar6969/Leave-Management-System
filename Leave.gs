@@ -9,10 +9,8 @@
  *  CL is "month-scoped" (balance is per month, lapses monthly). SL is "year-scoped" (balance carries within the year).
  */
 
-
 const LEAVE_NAMES = { CL: 'Casual Leave', SL: 'Sick Leave', OTHER: 'Other Leave' };
 let _HOL = null;
-
 
 /* ================= small helpers ================= */
 function plain_(o) { return JSON.parse(JSON.stringify(o === undefined ? null : o)); }
@@ -37,13 +35,21 @@ function webAppUrl_() {
 }
 function adminEmails_() {
   const l = S_('ADMIN_NOTIFICATION_EMAIL').split(/[,;]/).map(trim_).filter(isEmail_);
-  return (l.length ? l : ['mis@kisanenterprises.in']).join(',');
+  return (l.length ? l : [OWNER_EMAIL_]).join(',');
 }
+
+function allowedLeaves_(emp) {
+  const raw = String(emp['Allowed Leaves'] || '').trim().toUpperCase();
+  if (!raw) return ['CL', 'SL', 'OTHER'];
+  if (raw === 'NONE') return [];
+  return raw.split(',').map(trim_).filter(x => ['CL', 'SL', 'OTHER'].indexOf(x) > -1);
+}
+
 function empOut_(e) {
   return {
     id: e['Employee ID'], name: e['Employee Name'], email: e['Email'], phone: String(e['Phone'] || ''),
     department: e['Department'], designation: e['Designation'], joining: iso_(e['Joining Date']), status: e['Status'],
-    cl: e['CL Balance'], sl: e['SL Balance']
+    cl: e['CL Balance'], sl: e['SL Balance'], allowed: allowedLeaves_(e)
   };
 }
 function appOut_(a) {
@@ -62,7 +68,6 @@ function holidaySet_() {
   _HOL = s;
   return s;
 }
-
 
 /* ================= duration / notice ================= */
 function leaveDays_(from, to) {
@@ -96,7 +101,6 @@ function findOverlap_(empId, from, to, excludeId) {
     String(a['Application ID']) !== String(excludeId || '') &&
     iso_(a['From Date']) <= t && f <= iso_(a['To Date']))[0] || null;
 }
-
 
 /* ================= ledger index ================= */
 function ledIndex_(rows) {
@@ -163,7 +167,6 @@ function postReversal_(idx, out, who, rows, appId, remarks) {
   });
 }
 
-
 /* ================= balance check ================= */
 function pendingReserve_(empId, type, excludeId) {
   const res = {};
@@ -208,7 +211,6 @@ function checkBalance_(empId, type, days, idx, excludeId, actual) {
   return { ok: ok, lines: lines, message: msgs.join(' ') };
 }
 
-
 /* ================= validation (single source of truth) ================= */
 /**
  * emp: employee row. p: {leaveType,durationType,fromDate,toDate,reason}.
@@ -219,6 +221,8 @@ function validateLeave_(emp, p, opt) {
   const info = opt.info || {};
   const type = String(p.leaveType || '').toUpperCase();
   if (['CL', 'SL', 'OTHER'].indexOf(type) < 0) fail_('Please select a leave type.');
+  if (!opt.admin && allowedLeaves_(emp).indexOf(type) < 0)
+    fail_(LEAVE_NAMES[type] + ' is not assigned to you. Please contact Admin.');
   const single = String(p.durationType || 'SINGLE').toUpperCase() !== 'MULTI';
   const from = parseYmd_(p.fromDate);
   if (!from) fail_(single ? 'Please select the leave date.' : 'Please select the From Date.');
@@ -235,7 +239,6 @@ function validateLeave_(emp, p, opt) {
   const reason = String(p.reason || '').trim();
   if (reason.length < 3) fail_(type === 'OTHER' ? 'A reason is mandatory for Other Leave.' : 'Please enter the reason for leave.');
   if (reason.length > 500) fail_('Reason is too long (maximum 500 characters).');
-
 
   const t0 = today_();
   if (!opt.admin) {
@@ -263,7 +266,6 @@ function validateLeave_(emp, p, opt) {
   if (ov) fail_('An ' + (ov['Status'] === 'APPROVED' ? 'approved' : 'pending') + ' leave (' + ov['Application ID'] + ', ' +
     dmy_(ov['From Date']) + ' to ' + dmy_(ov['To Date']) + ') already overlaps these dates.');
 
-
   const idx = opt.idx || ledIndex_(readAll_('LED'));
   const bal = checkBalance_(emp['Employee ID'], type, days, idx, opt.excludeId, !!opt.admin);
   let negUsed = false;
@@ -282,7 +284,6 @@ function validateLeave_(emp, p, opt) {
     medRequired: info.medRequired, noticeBreach: noticeBreach, negUsed: negUsed, balance: bal
   };
 }
-
 
 /* ================= medical document ================= */
 function saveMedical_(f, emp, appId) {
@@ -307,12 +308,11 @@ function saveMedical_(f, emp, appId) {
   return { id: file.getId(), url: file.getUrl() };
 }
 
-
 /* ================= e-mail ================= */
 function sendMail_(to, subject, html) {
   try {
     if (!to) return { ok: false, error: 'No recipient' };
-    MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, body: subject, name: S_('COMPANY_NAME') + ' Leave Management' });
+    MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, body: subject, name: S_('COMPANY_NAME') });
     return { ok: true };
   } catch (e) {
     log_({ role: 'SYSTEM' }, 'EMAIL_FAILED', 'NOTIFICATION', '', '', '', subject + ' -> ' + to + ' : ' + e, 'FAILURE');
@@ -353,14 +353,27 @@ function notifyAdminNew_(a, row) {
   setCell_('APP', row, 'Admin Notified', r.ok ? 'Y' : 'ERR');
 }
 function notifyEmployee_(a, decision) {
-  if (!SB_('NOTIFY_EMPLOYEE_DECISION')) return;
-  if (String(a['Employee Notified']) === decision) return;          // no duplicate e-mails
-  if (!isEmail_(a['Employee Email'])) { log_({ role: 'SYSTEM' }, 'EMAIL_SKIPPED', 'NOTIFICATION', a['Application ID'], '', '', 'Employee has no e-mail', 'FAILURE'); return; }
-  const r = sendMail_(a['Employee Email'], 'Leave ' + decision + ' - ' + a['Application ID'], mailHtml_('Leave application ' + decision,
-    [['Application ID', a['Application ID']], ['Decision', decision], ['Leave type', LEAVE_NAMES[a['Leave Type']]],
-      ['Dates', dmy_(a['From Date']) + ' to ' + dmy_(a['To Date'])], ['Duration', a['Duration'] + ' day(s)'],
-      ['Admin remarks', a['Admin Remarks'] || '-'], ['Decision time', dt_(new Date())]], '', false));
-  if (r.ok) { const row = getApp_(a['Application ID']); if (row) setCell_('APP', row._row, 'Employee Notified', decision); }
+  try {
+    if (!a || !SB_('NOTIFY_EMPLOYEE_DECISION')) return;
+    if (String(a['Employee Notified']) === decision) return;
+    const row = getApp_(a['Application ID']);
+    if (!isEmail_(a['Employee Email'])) {
+      if (row) setCell_('APP', row._row, 'Employee Notified', 'NOEMAIL');
+      log_({ role: 'SYSTEM' }, 'EMAIL_SKIPPED', 'NOTIFICATION', a['Application ID'], '', '', 'Employee has no e-mail', 'FAILURE');
+      return;
+    }
+    const cancelled = decision === 'CANCELLED';
+    const title = cancelled ? 'Your approved leave has been cancelled by Admin' : 'Leave application ' + decision;
+    const subject = (cancelled ? 'Approved leave cancelled - ' : 'Leave ' + decision + ' - ') + a['Application ID'];
+    const r = sendMail_(a['Employee Email'], subject, mailHtml_(title,
+      [['Application ID', a['Application ID']], ['Decision', decision], ['Leave type', LEAVE_NAMES[a['Leave Type']]],
+        ['Dates', dmy_(a['From Date']) + ' to ' + dmy_(a['To Date'])], ['Duration', a['Duration'] + ' day(s)'],
+        ['Admin remarks', a['Admin Remarks'] || '-'], ['Decision time', dt_(new Date())]],
+      cancelled ? 'Your leave balance has been updated. Please contact Admin if you have any questions.' : '', false));
+    if (row) setCell_('APP', row._row, 'Employee Notified', r.ok ? decision : 'ERR');
+  } catch (e) {
+    log_({ role: 'SYSTEM' }, 'EMAIL_FAILED', 'NOTIFICATION', a ? a['Application ID'] : '', '', '', String(e), 'ERROR');
+  }
 }
 function sendDailyPendingReminder_(force) {
   const props = PropertiesService.getScriptProperties(), todayS = iso_(new Date());
@@ -384,7 +397,6 @@ function sendDailyPendingReminder_(force) {
   log_({ role: 'SYSTEM' }, 'DAILY_REMINDER', 'NOTIFICATION', '', '', '', pend.length + ' pending', r.ok ? 'SUCCESS' : 'FAILURE');
   return { sent: r.ok, count: pend.length, reason: r.ok ? '' : r.error };
 }
-
 
 /* ================= balances / summaries ================= */
 function monthTable_(rows, type, y) {
@@ -441,7 +453,6 @@ function refreshEmpBalances_() {
   sh.getRange(2, COLS.EMP.indexOf('CL Balance') + 1, vals.length, 2).setValues(vals);
 }
 
-
 /* ================= maintenance: monthly credit, lapse, year-end expiry ================= */
 /** Caller must hold the script lock. Idempotent: safe to run any number of times. */
 function ledgerMaintenance_(who) {
@@ -453,6 +464,7 @@ function ledgerMaintenance_(who) {
       for (let m = 1; m <= 12; m++) {
         if (new Date(y, m, 0) >= t) break;                      // month not finished yet
         emps.forEach(e => {
+          if (allowedLeaves_(e).indexOf(type) < 0) return;
           const b = idx.bal(e['Employee ID'], type, y, m);
           if (b > 0.0001) {
             ledPost_(idx, out, who, { emp: e['Employee ID'], year: y, month: m, type: type, tx: 'LAPSE', debit: b, remarks: 'Unused ' + type + ' lapsed at end of ' + MONTHS[m - 1] + ' ' + y });
@@ -462,6 +474,7 @@ function ledgerMaintenance_(who) {
       }
     } else if (y < cy) {
       emps.forEach(e => {
+        if (allowedLeaves_(e).indexOf(type) < 0) return;
         const b = idx.bal(e['Employee ID'], type, y, null);
         if (b > 0.0001) {
           ledPost_(idx, out, who, { emp: e['Employee ID'], year: y, month: 12, type: type, tx: 'EXPIRY', debit: b, remarks: 'Unused ' + type + ' expired at year end ' + y });
@@ -476,6 +489,7 @@ function ledgerMaintenance_(who) {
     if (jd instanceof Date && (jd.getFullYear() > cy || (jd.getFullYear() === cy && jd.getMonth() + 1 > cm))) return;
     ['CL', 'SL'].forEach(type => {
       const id = e['Employee ID'];
+      if (allowedLeaves_(e).indexOf(type) < 0) return;
       if (idx.hasCredit(id, type, cy, cm)) return;
       const amt = Math.min(SN_(type + '_MONTHLY_CREDIT'), SN_(type + '_ANNUAL_MAX') - idx.yearCredits(id, type, cy));
       if (amt <= 0) return;
@@ -495,18 +509,30 @@ function runMaintenance_(who) {
   });
 }
 
-
 /* ================= EMPLOYEE API ================= */
 function empHome_(ctx) {
   const emp = ctx.emp, y = today_().getFullYear();
   const rows = readAll_('LED').filter(r => String(r['Employee ID']) === String(emp['Employee ID']));
-  const apps = readAll_('APP').filter(a => String(a['Employee ID']) === String(emp['Employee ID']) && a['From Date'] instanceof Date && a['From Date'].getFullYear() === y);
+  const mine = readAll_('APP').filter(a => String(a['Employee ID']) === String(emp['Employee ID']));
+  const apps = mine.filter(a => a['From Date'] instanceof Date && a['From Date'].getFullYear() === y);
   const cnt = s => apps.filter(a => a['Status'] === s).length;
+  const tcnt = t => ({
+    approved: apps.filter(a => a['Leave Type'] === t && a['Status'] === 'APPROVED').length,
+    pending: apps.filter(a => a['Leave Type'] === t && a['Status'] === 'PENDING').length
+  });
+  const since = Date.now() - 14 * 86400000;
+  const notices = mine.filter(a => a['Status'] === 'CANCELLED' && a['Reviewed By'] && a['Reviewed At'] instanceof Date && a['Reviewed At'].getTime() >= since).map(appOut_);
+  const penalties = readAll_('UNA').filter(u => String(u['Employee ID']) === String(emp['Employee ID'])).reverse().map(u => ({
+    id: u['Incident ID'], from: dmy_(u['From Date']), to: dmy_(u['To Date']), duration: u['Duration'], occ: u['Occurrence Number'],
+    salary: u['Salary Deduction'], penalty: u['Additional Penalty'], remarks: u['Admin Remarks']
+  }));
+
   return plain_({
     employee: empOut_(emp), year: y, summary: summaryFor_(rows, emp['Employee ID'], y),
     tables: { CL: monthTable_(rows, 'CL', y), SL: monthTable_(rows, 'SL', y) },
     counts: { pending: cnt('PENDING'), approved: cnt('APPROVED'), rejected: cnt('REJECTED') },
-    clMonthScoped: monthScoped_('CL'), slMonthScoped: monthScoped_('SL')
+    typeCounts: { CL: tcnt('CL'), SL: tcnt('SL'), OTHER: tcnt('OTHER') },
+    clMonthScoped: monthScoped_('CL'), slMonthScoped: monthScoped_('SL'), notices: notices, penalties: penalties
   });
 }
 function empApplications_(ctx) {
@@ -574,3 +600,40 @@ function empCancel_(ctx, p) {
   return { message: 'Application cancelled.' };
 }
 
+function empAckPolicy_(ctx) {
+  log_({ email: ctx.email, role: 'EMPLOYEE' }, 'LEAVE_POLICY_ACKNOWLEDGED', 'SECURITY', ctx.id, '', '', 'Employee confirmed reading the leave policy', 'SUCCESS');
+  return { done: true };
+}
+
+function empMyLeaves_(ctx) { return { allowed: allowedLeaves_(ctx.emp) }; }
+
+function cleanupUnassignedLedger() {
+  assertOwnerRun_();
+  return withLock_(() => cleanupLedgerCore_(Session.getEffectiveUser().getEmail()));
+}
+
+/** Caller must hold the script lock. */
+function cleanupLedgerCore_(who) {
+  const sh = sh_('LED'), n = COLS.LED.length, last = sh.getLastRow();
+  if (last < 2) return 'Ledger is empty.';
+  const vals = sh.getRange(2, 1, last - 1, n).getValues();
+  const iE = COLS.LED.indexOf('Employee ID'), iT = COLS.LED.indexOf('Leave Type'), iX = COLS.LED.indexOf('Transaction Type');
+  const allowed = {};
+  readAll_('EMP').forEach(e => { allowed[String(e['Employee ID'])] = allowedLeaves_(e); });
+  const real = {};
+  vals.forEach(r => { if (['USE', 'REVERSAL', 'ADJUST'].indexOf(r[iX]) > -1) real[r[iE] + '|' + r[iT]] = 1; });
+  const keep = vals.filter(r => {
+    const al = allowed[String(r[iE])];
+    if (!al) return true;
+    if (['CREDIT', 'LAPSE', 'EXPIRY'].indexOf(r[iX]) < 0) return true;
+    if (al.indexOf(r[iT]) > -1) return true;
+    return !!real[r[iE] + '|' + r[iT]];
+  });
+  const removed = vals.length - keep.length;
+  if (!removed) return 'Nothing to clean.';
+  sh.getRange(2, 1, vals.length, n).clearContent();
+  if (keep.length) sh.getRange(2, 1, keep.length, n).setValues(keep);
+  refreshEmpBalances_();
+  log_({ email: who, role: 'OWNER' }, 'LEDGER_CLEANUP', 'LEDGER', '', '', { removed: removed }, 'Removed credits/lapses for unassigned leave types', 'SUCCESS');
+  return 'Removed ' + removed + ' ledger rows.';
+}
