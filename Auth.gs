@@ -10,11 +10,11 @@
  *    Cache may be cleared by Google at any time; the user then simply signs in again.
  *  - Identity is by email/phone + password (Admin) and email/phone (Employee), as requested.
  *    The web app does NOT rely on Google account identity.
+ *
+ * NOTE: pepper_() lives ONLY in this file. Delete any copy of pepper_() from Code.gs.
  */
 
-
 const PBKDF_ITER = 1200;
-
 
 /* ---------------- crypto helpers ---------------- */
 function randomToken_() { return (Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ''); }
@@ -62,13 +62,16 @@ function validatePassword_(pwd) {
   if (!/[A-Za-z]/.test(pwd) || !/\d/.test(pwd)) fail_('Password must contain both letters and numbers.');
 }
 
-
 /* ---------------- rate limiting ---------------- */
+/** Fixed window: at most `max` calls per `windowSec`. The window does NOT extend while traffic continues. */
 function throttle_(key, max, windowSec) {
-  const c = cache_();
-  const n = parseInt(c.get(key) || '0', 10) || 0;
-  if (n >= max) return false;
-  c.put(key, String(n + 1), Math.min(windowSec, 21600));
+  const c = cache_(), now = Date.now();
+  let o = null;
+  try { o = JSON.parse(c.get(key) || 'null'); } catch (e) { o = null; }
+  if (!o || typeof o.s !== 'number' || now - o.s > windowSec * 1000) o = { n: 0, s: now };
+  if (o.n >= max) return false;
+  o.n++;
+  c.put(key, JSON.stringify(o), Math.min(Math.max(windowSec, 1), 21600));
   return true;
 }
 function isLocked_(prefix, key) { return !!cache_().get(prefix + 'LOCK_' + key); }
@@ -87,7 +90,6 @@ function identKey_(ident) {
   return sha256Hex_(s.indexOf('@') > -1 ? normEmail_(s) : normPhone_(s));
 }
 function lockMsg_() { return 'Too many failed attempts. Please try again after ' + SN_('LOCKOUT_MINUTES') + ' minutes.'; }
-
 
 /* ---------------- sessions ---------------- */
 function sessionKey_(t) { return 'S_' + sha256Hex_(t); }
@@ -119,13 +121,15 @@ function sessionLogout_(ctx) {
   return { done: true };
 }
 
-
 /* ---------------- lookups ---------------- */
 function findEmployeeByIdent_(ident) {
   const s = String(ident || '').trim();
   const isMail = s.indexOf('@') > -1;
   const em = normEmail_(s), ph = normPhone_(s);
-  return readAll_('EMP').filter(e => isMail ? normEmail_(e['Email']) === em : (ph.length === 10 && normPhone_(e['Phone']) === ph))[0] || null;
+  return readAll_('EMP').filter(e =>
+    String(e['Status']) !== 'Deleted' &&   // employees in the Bin can never sign in
+    (isMail ? normEmail_(e['Email']) === em : (ph.length === 10 && normPhone_(e['Phone']) === ph))
+  )[0] || null;
 }
 function findAdminByIdent_(ident) {
   const s = String(ident || '').trim();
@@ -143,7 +147,6 @@ function checkIdentFormat_(ident) {
   else if (normPhone_(s).length !== 10) fail_('Please enter a valid 10-digit mobile number.');
   return s;
 }
-
 
 /* ---------------- OTP ---------------- */
 function genOtp_() {
@@ -173,7 +176,6 @@ function checkOtp_(key, code) {
   return true;
 }
 
-
 /* ---------------- EMPLOYEE LOGIN ---------------- */
 function employeeSessionResult_(emp) {
   const mins = SN_('EMPLOYEE_SESSION_MINUTES');
@@ -181,7 +183,6 @@ function employeeSessionResult_(emp) {
   log_({ email: emp['Email'] || emp['Phone'], role: 'EMPLOYEE' }, 'EMPLOYEE_LOGIN', 'SECURITY', emp['Employee ID'], '', '', '', 'SUCCESS');
   return { token: token, user: { id: emp['Employee ID'], name: emp['Employee Name'] }, config: clientConfig_(), sessionMinutes: mins };
 }
-
 
 function employeeLogin_(ctx, p) {
   if (!SB_('SYSTEM_ACTIVE')) fail_('The leave portal is temporarily closed. Please contact Admin.');
@@ -208,7 +209,6 @@ function employeeLogin_(ctx, p) {
   return employeeSessionResult_(emp);
 }
 
-
 function employeeVerifyOtp_(ctx, p) {
   const ident = checkIdentFormat_(p.identifier);
   const key = identKey_(ident);
@@ -225,7 +225,6 @@ function employeeVerifyOtp_(ctx, p) {
   return employeeSessionResult_(emp);
 }
 
-
 function employeeCtx_(token) {
   const s = getSession_(token, 'EMPLOYEE');
   if (!SB_('SYSTEM_ACTIVE')) fail_('The leave portal is temporarily closed. Please contact Admin.', 'AUTH');
@@ -233,7 +232,6 @@ function employeeCtx_(token) {
   if (!emp || String(emp['Status']) !== 'Active') { cache_().remove(sessionKey_(token)); throw authErr_(); }
   return { role: 'EMPLOYEE', id: emp['Employee ID'], email: emp['Email'] || emp['Phone'], emp: emp, token: token };
 }
-
 
 /* ---------------- ADMIN LOGIN ---------------- */
 function adminLogin_(ctx, p) {
@@ -265,11 +263,9 @@ function adminLogin_(ctx, p) {
   };
 }
 
-
 function adminMe_(ctx) {
   return { admin: { id: ctx.id, name: ctx.name, email: ctx.email, role: ctx.adminRole }, config: clientConfig_() };
 }
-
 
 /* ---------------- FORGOT PASSWORD (security code to registered email) ---------------- */
 function adminForgotStart_(ctx, p) {
@@ -292,7 +288,6 @@ function adminForgotStart_(ctx, p) {
   return resp;
 }
 
-
 function adminForgotComplete_(ctx, p) {
   const ident = checkIdentFormat_(p.identifier);
   const key = identKey_(ident);
@@ -314,7 +309,6 @@ function adminForgotComplete_(ctx, p) {
   return { message: 'Your password has been set. Please sign in with your new password.' };
 }
 
-
 /* ---------------- CHANGE PASSWORD (signed-in admin) ---------------- */
 function adminChangePassword_(ctx, p) {
   const cred = getCred_(ctx.id);
@@ -333,13 +327,9 @@ function adminChangePassword_(ctx, p) {
   return { message: 'Password changed. Please sign in again.' };
 }
 
-
 function adminCtx_(token) {
   const s = getSession_(token, 'ADMIN');
   const a = getAdminById_(s.id);
   if (!a || String(a['Status']) !== 'Active') { cache_().remove(sessionKey_(token)); throw authErr_(); }
   return { role: 'ADMIN', adminRole: a['Role'], id: a['Admin ID'], email: a['Email'], name: a['Admin Name'], admin: a, token: token };
 }
-
-
-
