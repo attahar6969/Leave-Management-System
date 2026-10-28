@@ -1,16 +1,19 @@
 /**
+ * ATTAHAR WEB-PORTAL - LEAVE MANAGEMENT WEB APP  (v1.0)
  * Code.gs
  * Entry points, constants, settings, sheet helpers, logging, API gateway, setup, triggers.
+ *
  * SECURITY MODEL (important)
  *  - The browser can call ONLY: doGet, apiPublic, apiEmployee, apiAdmin.
  *  - Every other helper ends with "_" and cannot be called from the browser.
  *  - apiEmployee / apiAdmin verify a server-side session token on EVERY call.
  *  - Setup / menu functions refuse to run unless the spreadsheet owner runs them.
+ *  - Admins can use ANY email domain. Nothing here restricts the domain.
  */
 
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
+const OWNER_EMAIL_ = 'valobvb30@gmail.com';
+const PORTAL_NAME_ = 'Attahar Web-Portal';
 
 const SH = {
   EMP: 'EMPLOYEE MASTER',
@@ -25,10 +28,10 @@ const SH = {
 };
 const SHEET_ORDER = ['EMP', 'APP', 'LED', 'BON', 'UNA', 'HOL', 'ADM', 'SET', 'LOG'];
 
-
 const COLS = {
   EMP: ['Employee ID', 'Employee Name', 'Email', 'Phone', 'Department', 'Designation', 'Joining Date', 'Status',
-    'CL Balance', 'SL Balance', 'Created At', 'Updated At'],
+    'CL Balance', 'SL Balance', 'Created At', 'Updated At', 'Allowed Leaves',
+    'Deleted At', 'Deleted By', 'Prev Status', 'Source Sync'],
   ADM: ['Admin ID', 'Admin Name', 'Email', 'Phone', 'Role', 'Status', 'Created At', 'Updated At'],
   APP: ['Application ID', 'Submission Timestamp', 'Employee ID', 'Employee Name', 'Employee Email', 'Leave Type',
     'Duration Type', 'From Date', 'To Date', 'Duration', 'Reason', 'Medical Document ID', 'Medical Document URL',
@@ -47,18 +50,16 @@ const COLS = {
     'Remarks', 'Result']
 };
 
-
 const DATE_COLS = {
   EMP: ['Joining Date'], APP: ['From Date', 'To Date'], BON: ['Cutoff Date', 'Payment Date'],
   UNA: ['Incident Date', 'From Date', 'To Date'], HOL: ['Holiday Date']
 };
 const DATETIME_COLS = {
-  EMP: ['Created At', 'Updated At'], ADM: ['Created At', 'Updated At'],
+  EMP: ['Created At', 'Updated At', 'Deleted At'], ADM: ['Created At', 'Updated At'],
   APP: ['Submission Timestamp', 'Reviewed At', 'Created At', 'Updated At'], LED: ['Created At'],
   BON: ['Updated At'], UNA: ['Created At', 'Updated At'], LOG: ['Timestamp']
 };
 const TEXT_COLS = { EMP: ['Phone'], ADM: ['Phone'], SET: ['Value'] };
-
 
 /* ------------------------------------------------------------------ */
 /*  ERRORS / GLOBAL CACHES                                             */
@@ -68,10 +69,8 @@ class UserError extends Error {
 }
 function fail_(msg, code) { throw new UserError(msg, code); }
 
-
 let _SS = null;
 let _SETTINGS = null;
-
 
 /* ------------------------------------------------------------------ */
 /*  SETTINGS  (edited from the Admin Portal > Settings page)           */
@@ -80,13 +79,12 @@ let _SETTINGS = null;
 function defaultSettings_() {
   const yr = String(new Date().getFullYear());
   return [
-    ['General', 'COMPANY_NAME', 'Kisan Enterprises', 'text', 'Company name shown in the app and in emails.'],
+    ['General', 'COMPANY_NAME', PORTAL_NAME_, 'text', 'Name shown in the app and in emails.'],
     ['General', 'SYSTEM_ACTIVE', 'TRUE', 'bool', 'Set FALSE to temporarily close the Employee Portal (Admin still works).'],
     ['General', 'TIMEZONE', 'Asia/Kolkata', 'readonly', 'Fixed. Also set the Apps Script project time zone to Asia/Kolkata.'],
     ['General', 'DATE_FORMAT', 'DD/MM/YYYY', 'readonly', 'Fixed display format.'],
     ['General', 'LEAVE_YEAR', 'Calendar Year (January to December)', 'readonly', 'Fixed leave year.'],
     ['General', 'WEB_APP_URL', '', 'text', 'Web app link used inside emails. Leave blank to auto-detect.'],
-
 
     ['Admin Access', 'ADMIN_SESSION_MINUTES', '30', 'number', 'Admin session expires after this many idle minutes.'],
     ['Admin Access', 'EMPLOYEE_SESSION_MINUTES', '60', 'number', 'Employee session expires after this many idle minutes.'],
@@ -96,8 +94,7 @@ function defaultSettings_() {
     ['Admin Access', 'OTP_MAX_ATTEMPTS', '5', 'number', 'Wrong security-code entries allowed before the code is cancelled.'],
     ['Admin Access', 'PASSWORD_MIN_LENGTH', '8', 'number', 'Minimum Admin password length (must include letters and numbers).'],
     ['Admin Access', 'EMPLOYEE_LOGIN_MODE', 'IDENTIFIER', 'select:IDENTIFIER|EMAIL_OTP',
-      'IDENTIFIER = email or phone only (as requested). EMAIL_OTP = also verify with a code emailed to the employee (more secure).'],
-
+      'IDENTIFIER = email or phone only. EMAIL_OTP = also verify with a code emailed to the employee (more secure).'],
 
     ['Leave Policy', 'CL_MONTHLY_CREDIT', '1', 'number', 'Casual Leave credited each month.'],
     ['Leave Policy', 'SL_MONTHLY_CREDIT', '1', 'number', 'Sick Leave credited each month.'],
@@ -117,7 +114,6 @@ function defaultSettings_() {
     ['Leave Policy', 'PUBLIC_HOLIDAY_ALLOWANCE', '8', 'number', 'Public holidays allowed per year.'],
     ['Leave Policy', 'PUBLIC_HOLIDAY_TREATMENT', 'Kept separate. Not deducted from CL or SL.', 'text', 'Company policy note for public holidays (information only).'],
 
-
     ['Notice Rules', 'CL_NOTICE_HOURS', '24', 'number', 'Casual Leave minimum advance notice (hours).'],
     ['Notice Rules', 'OTHER_NOTICE_HOURS', '24', 'number', 'Other Leave minimum advance notice (hours).'],
     ['Notice Rules', 'SL_NOTICE_HOURS', '0', 'number', 'Sick Leave advance notice (0 = exempt).'],
@@ -129,20 +125,20 @@ function defaultSettings_() {
     ['Notice Rules', 'LONG_LEAVE_NOTICE_DAYS', '7', 'number', 'Additional rule: notice days for longer leave.'],
     ['Notice Rules', 'LONG_LEAVE_MIN_DAYS', '3', 'number', 'Additional rule: leave of this many days or more counts as "longer".'],
 
-
     ['Diwali Bonus', 'BONUS_YEAR', yr, 'number', 'Bonus year being processed.'],
     ['Diwali Bonus', 'BONUS_CUTOFF_DATE', '', 'date', 'Only CL that lapsed on or before this date counts. Set after the Diwali date is known.'],
     ['Diwali Bonus', 'BONUS_PAYMENT_DATE', '', 'date', 'Expected payment date.'],
-    ['Diwali Bonus', 'BONUS_FORMULA_MODE', 'MANUAL', 'select:MANUAL|PER_CL', 'MANUAL = Admin enters each amount. PER_CL = eligible CL x amount below.'],
-    ['Diwali Bonus', 'BONUS_AMOUNT_PER_CL', '0', 'number', 'Rupees per eligible CL (used only in PER_CL mode). Company formula not finalised.'],
+    ['Diwali Bonus', 'BONUS_ACTIVE_RULE', 'R-MANUAL', 'hidden', 'Rule in use (managed from the Bonus rules list).'],
+    ['Diwali Bonus', 'BONUS_RULES', '[{"id":"R-MANUAL","name":"Manual","type":"MANUAL","value":0}]', 'hidden', 'Bonus rules (managed from the Bonus rules list).'],
+    ['Diwali Bonus', 'BONUS_ADMIN_VIEW', 'FALSE', 'bool', 'Yes = normal Admins can see Diwali Bonus details. No = only the Owner can. Only the Owner can change this.'],
 
+    ['Employees', 'EMP_BIN_DAYS', '30', 'number', 'Days a deleted employee stays in the Bin before permanent removal. Owner only.'],
 
-    ['Notifications', 'ADMIN_NOTIFICATION_EMAIL', 'mis@kisanenterprises.in', 'emails', 'Admin email(s) for alerts. Separate several with commas.'],
+    ['Notifications', 'ADMIN_NOTIFICATION_EMAIL', OWNER_EMAIL_, 'emails', 'Admin email(s) for alerts. Separate several with commas.'],
     ['Notifications', 'NOTIFY_ADMIN_INSTANT', 'TRUE', 'bool', 'Email Admin immediately for each new application.'],
     ['Notifications', 'DAILY_REMINDER_ENABLED', 'TRUE', 'bool', 'Send a daily list of pending applications.'],
     ['Notifications', 'DAILY_REMINDER_HOUR', '9', 'number', 'Reminder hour (0-23, India time).'],
     ['Notifications', 'NOTIFY_EMPLOYEE_DECISION', 'TRUE', 'bool', 'Email the employee when an application is approved/rejected/cancelled.'],
-
 
     ['Penalty', 'PEN1_DAYS', '1', 'number', '1st unauthorized leave: days of salary deducted.'],
     ['Penalty', 'PEN1_AMOUNT', '800', 'number', '1st unauthorized leave: additional penalty (Rs).'],
@@ -154,7 +150,6 @@ function defaultSettings_() {
     ['Penalty', 'PEN_POLICY_TEXT', 'More than 3 consecutive unauthorized days: Admin review, possible termination under company policy.', 'text', 'Policy text shown to Admin. The system never deducts salary or terminates automatically.']
   ];
 }
-
 
 function settingsMap_() {
   if (_SETTINGS) return _SETTINGS;
@@ -175,12 +170,10 @@ function settingsMap_() {
   return m;
 }
 
-
 function resetSettingsCache_() {
   _SETTINGS = null;
   try { CacheService.getScriptCache().remove('SETTINGS_MAP'); } catch (e) { /* ignore */ }
 }
-
 
 function S_(k) { const m = settingsMap_(); return m[k] === undefined ? '' : String(m[k]); }
 function SN_(k) {
@@ -190,8 +183,6 @@ function SN_(k) {
   return d ? (parseFloat(d[2]) || 0) : 0;
 }
 function SB_(k) { return String(S_(k)).trim().toLowerCase() === 'true'; }
-
-
 
 
 /* ------------------------------------------------------------------ */
@@ -225,9 +216,14 @@ function readAll_(key) {
 function objToArr_(key, o) {
   return COLS[key].map(c => (o[c] === undefined || o[c] === null) ? '' : o[c]);
 }
+function ensureRows_(sh, lastNeeded) {
+  const max = sh.getMaxRows();
+  if (lastNeeded > max) sh.insertRowsAfter(max, lastNeeded - max + 200);
+}
 function appendObj_(key, o) {
   const sh = sh_(key);
   const row = sh.getLastRow() + 1;
+  ensureRows_(sh, row);
   sh.getRange(row, 1, 1, COLS[key].length).setValues([objToArr_(key, o)]);
   return row;
 }
@@ -235,6 +231,7 @@ function appendMany_(key, objs) {
   if (!objs.length) return;
   const sh = sh_(key);
   const row = sh.getLastRow() + 1;
+  ensureRows_(sh, row + objs.length - 1);
   sh.getRange(row, 1, objs.length, COLS[key].length).setValues(objs.map(o => objToArr_(key, o)));
 }
 function updateObj_(key, row, changes) {
@@ -245,7 +242,6 @@ function updateObj_(key, row, changes) {
   });
   sh.getRange(row, 1, 1, n).setValues([cur]);
 }
-
 
 /* ------------------------------------------------------------------ */
 /*  DATE / ID / LOCK HELPERS                                           */
@@ -288,7 +284,6 @@ function normPhone_(s) { return String(s || '').replace(/\D/g, '').slice(-10); }
 function normEmail_(s) { return String(s || '').trim().toLowerCase(); }
 function isEmail_(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || '').trim()); }
 
-
 /* ------------------------------------------------------------------ */
 /*  SYSTEM LOG  (append-only through server code)                      */
 /* ------------------------------------------------------------------ */
@@ -310,23 +305,21 @@ function log_(ctx, action, module, recordId, oldV, newV, remarks, result) {
   }
 }
 
-
 /* ------------------------------------------------------------------ */
 /*  WEB APP ENTRY                                                      */
 /* ------------------------------------------------------------------ */
 function doGet() {
-  let company = 'Kisan Enterprises';
+  let company = PORTAL_NAME_;
   try { company = S_('COMPANY_NAME') || company; } catch (e) { /* not set up yet */ }
   const t = HtmlService.createTemplateFromFile('Index');
   t.company = company;
   return t.evaluate()
-    .setTitle(company + ' - Leave Management')
+    .setTitle(company)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 function include(name) {
   return HtmlService.createHtmlOutputFromFile(name).getContent();
 }
-
 
 /* ------------------------------------------------------------------ */
 /*  API GATEWAY - the only server functions the browser may use        */
@@ -340,7 +333,6 @@ function apiEmployee(action, token, payload) {
 function apiAdmin(action, token, payload) {
   return runApi_(adminApi_(), action, payload, () => adminCtx_(token));
 }
-
 
 function runApi_(map, action, payload, authFn) {
   try {
@@ -356,7 +348,6 @@ function runApi_(map, action, payload, authFn) {
   }
 }
 
-
 function publicApi_() {
   return {
     getPublicInfo: () => ({
@@ -370,14 +361,12 @@ function publicApi_() {
   };
 }
 
-
 function employeeApi_() {
   return {
     home: empHome_, applications: empApplications_, holidays: empHolidays_, preview: empPreview_,
-    submit: empSubmit_, cancel: empCancel_, logout: sessionLogout_
+    submit: empSubmit_, cancel: empCancel_, logout: sessionLogout_, ackPolicy: empAckPolicy_, myLeaves: empMyLeaves_
   };
 }
-
 
 function adminApi_() {
   return {
@@ -385,17 +374,18 @@ function adminApi_() {
     dashboard: adminDashboard_, listApplications: adminListApplications_, getApplication: adminGetApplication_,
     getDocument: adminGetDocument_, approve: adminApprove_, reject: adminReject_, cancelApproved: adminCancelApproved_,
     manualLeave: adminManualLeave_, updateLeave: adminUpdateLeave_,
-    listEmployees: adminListEmployees_, saveEmployee: adminSaveEmployee_,
+    listEmployees: adminListEmployees_, saveEmployee: adminSaveEmployee_, deleteEmployee: adminDeleteEmployee_,
+    binList: adminBinList_, binRestore: adminBinRestore_, binPurgeNow: adminBinPurgeNow_,
     balanceSummary: adminBalanceSummary_, ledger: adminLedger_, adjustBalance: adminAdjustBalance_,
     listUnauthorized: adminListUnauthorized_, suggestPenalty: adminSuggestPenalty_, saveUnauthorized: adminSaveUnauthorized_,
     bonusList: adminBonusList_, bonusCompute: adminBonusCompute_, bonusSave: adminBonusSave_,
+    bonusRules: adminBonusRules_, bonusRuleSave: adminBonusRuleSave_, bonusRuleUse: adminBonusRuleUse_, bonusRuleDelete: adminBonusRuleDelete_,
     listHolidays: adminListHolidays_, saveHoliday: adminSaveHoliday_,
     getSettings: adminGetSettings_, saveSettings: adminSaveSettings_,
-    listAdmins: adminListAdmins_, saveAdmin: adminSaveAdmin_,
+    listAdmins: adminListAdmins_, saveAdmin: adminSaveAdmin_, deleteAdmin: adminDeleteAdmin_,
     listLog: adminListLog_, runMaintenance: adminRunMaintenance_, sendReminderNow: adminSendReminderNow_
   };
 }
-
 
 function clientConfig_() {
   return {
@@ -403,11 +393,11 @@ function clientConfig_() {
     clNotice: SN_('CL_NOTICE_HOURS'), otherNotice: SN_('OTHER_NOTICE_HOURS'), slNotice: SN_('SL_NOTICE_HOURS'),
     medThreshold: SN_('MEDICAL_PROOF_THRESHOLD_DAYS'), maxUploadMb: SN_('MAX_UPLOAD_MB'),
     durationMode: S_('DURATION_MODE'), otherTreatment: S_('OTHER_LEAVE_TREATMENT'),
+    weeklyOffText: weeklyOffText_(),
     penaltyPolicy: S_('PEN_POLICY_TEXT'), holidayAllowance: SN_('PUBLIC_HOLIDAY_ALLOWANCE'),
     holidayTreatment: S_('PUBLIC_HOLIDAY_TREATMENT')
   };
 }
-
 
 /* ------------------------------------------------------------------ */
 /*  SETUP  (owner runs ONCE from the Apps Script editor or sheet menu) */
@@ -418,6 +408,7 @@ function assertOwnerRun_() {
   if (!a || !e || a.toLowerCase() !== e.toLowerCase()) throw new Error('Only the spreadsheet owner can run this function.');
 }
 
+const APP_VERSION_ = 'Attahar Web-Portal Leave Management v1.0';
 
 function setupSystem() {
   assertOwnerRun_();
@@ -433,15 +424,13 @@ function setupSystem() {
   createTriggers_();
   protectSheets_();
   log_({ email: Session.getEffectiveUser().getEmail(), role: 'OWNER' }, 'SETUP_COMPLETED', 'SYSTEM', '', '', APP_VERSION_, 'Setup run');
-  let msg = 'Setup complete. Next: deploy as a Web App and ask the Admin to use "Forgot password" on the login page to create the first password.';
+  let msg = 'Setup complete. Next: deploy as a Web App (Execute as: Me, Who has access: Anyone) and ask the Owner to use "Forgot password" on the login page to create the first password.';
   if (Session.getScriptTimeZone() !== 'Asia/Kolkata') {
     msg += '\n\nWARNING: Project time zone is "' + Session.getScriptTimeZone() + '". Set it to Asia/Kolkata (Project Settings) so dates are exact.';
   }
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { console.log(msg); }
   return msg;
 }
-const APP_VERSION_ = 'Leave Management v1.0';
-
 
 function initializeSheets_(ss) {
   SHEET_ORDER.forEach((k, i) => {
@@ -461,10 +450,9 @@ function initializeSheets_(ss) {
   const def = ss.getSheetByName('Sheet1');
   if (def && ss.getSheets().length > 1 && def.getLastRow() === 0) ss.deleteSheet(def);
 
-
   const listRule = vals => SpreadsheetApp.newDataValidation().requireValueInList(vals, true).setAllowInvalid(false).build();
   const setList = (key, col, vals) => sh_(key).getRange(2, COLS[key].indexOf(col) + 1, Math.max(sh_(key).getMaxRows() - 1, 1), 1).setDataValidation(listRule(vals));
-  setList('EMP', 'Status', ['Active', 'Inactive']);
+  setList('EMP', 'Status', ['Active', 'Inactive', 'Deleted']);
   setList('APP', 'Status', ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED']);
   setList('APP', 'Leave Type', ['CL', 'SL', 'OTHER']);
   setList('BON', 'Status', ['Pending', 'Processed', 'Paid']);
@@ -478,7 +466,6 @@ function initializeSheets_(ss) {
   sh_('LOG').setColumnWidth(10, 320);
 }
 
-
 function seedSettings_() {
   const sh = sh_('SET');
   const have = {};
@@ -488,30 +475,26 @@ function seedSettings_() {
   resetSettingsCache_();
 }
 
-
 function seedPrimaryAdmin_() {
-  const email = 'mis@kisanenterprises.in';
-  const admins = readAll_('ADM');
-  if (admins.some(a => normEmail_(a['Email']) === email)) return;
+  const email = OWNER_EMAIL_;
+  if (readAll_('ADM').some(a => normEmail_(a['Email']) === email)) return;
   const now = new Date();
   appendObj_('ADM', {
-    'Admin ID': 'ADM-' + pad_(nextSeq_('ADM'), 3), 'Admin Name': 'Primary Admin', 'Email': email, 'Phone': '',
+    'Admin ID': 'ADM-' + pad_(nextSeq_('ADM'), 3), 'Admin Name': 'Owner', 'Email': email, 'Phone': '',
     'Role': 'OWNER', 'Status': 'Active', 'Created At': now, 'Updated At': now
   });
 }
-
 
 function docFolderId_() {
   const p = PropertiesService.getScriptProperties();
   let id = p.getProperty('DOC_FOLDER_ID');
   if (id) { try { DriveApp.getFolderById(id); return id; } catch (e) { /* recreate */ } }
-  const it = DriveApp.getFoldersByName('Kisan Leave Documents');
-  const f = it.hasNext() ? it.next() : DriveApp.createFolder('Kisan Leave Documents');
+  const it = DriveApp.getFoldersByName('Attahar Leave Documents');
+  const f = it.hasNext() ? it.next() : DriveApp.createFolder('Attahar Leave Documents');
   id = f.getId();
   p.setProperty('DOC_FOLDER_ID', id);
   return id;
 }
-
 
 function protectSheets_() {
   const ss = ss_();
@@ -527,7 +510,6 @@ function protectSheets_() {
   });
 }
 
-
 function createTriggers_() {
   ScriptApp.getProjectTriggers().forEach(t => {
     const f = t.getHandlerFunction();
@@ -541,19 +523,19 @@ function createTriggers_() {
   }
 }
 
-
 /* ------------------------------------------------------------------ */
 /*  TRIGGER ENTRY POINTS (idempotent, safe to run more than once)      */
 /* ------------------------------------------------------------------ */
 function triggerDailyMaintenance() {
   try { runMaintenance_('SYSTEM'); }
   catch (e) { log_({ role: 'SYSTEM' }, 'MAINTENANCE_FAILED', 'SYSTEM', '', '', '', String(e), 'ERROR'); }
+  try { binPurge_('SYSTEM'); }
+  catch (e) { log_({ role: 'SYSTEM' }, 'BIN_PURGE_FAILED', 'SYSTEM', '', '', '', String(e), 'ERROR'); }
 }
 function triggerDailyReminder() {
   try { sendDailyPendingReminder_(false); }
   catch (e) { log_({ role: 'SYSTEM' }, 'REMINDER_FAILED', 'SYSTEM', '', '', '', String(e), 'ERROR'); }
 }
-
 
 /* ------------------------------------------------------------------ */
 /*  SPREADSHEET MENU (owner only)                                      */
@@ -597,4 +579,9 @@ function menuOwnerReset() {
   log_({ email: Session.getEffectiveUser().getEmail(), role: 'OWNER' }, 'OWNER_RESET_ADMIN_CREDENTIALS', 'SECURITY', admin['Admin ID'], '', '', 'Password cleared by owner', 'SUCCESS');
   ui.alert('Password cleared and all sessions ended. The Admin must now use "Forgot password" on the login page to set a new password (code goes to ' + admin['Email'] + ').');
 }
-
+function weeklyOffText_() {
+  if (S_('DURATION_MODE') !== 'WORKING') return '';
+  const N = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const d = String(S_('WEEKLY_OFF_DAYS')).split(',').map(x => x.trim()).filter(x => x !== '').map(Number).filter(n => n >= 0 && n <= 6);
+  return d.length ? d.map(n => N[n]).join(' and ') : '';
+}
