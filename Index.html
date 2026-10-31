@@ -326,6 +326,44 @@ td.num,th.num{white-space:nowrap;padding-right:14px}
 .demo{background:var(--warnb);border:1px solid #f0d48a;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--warn);line-height:1.5}
 .demo b{display:block;margin-bottom:2px}
 .demo code{background:#fff;color:var(--txt);padding:1px 6px;border-radius:4px;border:1px solid var(--line);font-family:Consolas,monospace;font-size:12.5px}
+
+/* ===== LIVE INSTRUCTIONS GUIDE ===== */
+.tghero{background:var(--navy);color:#fff;border-radius:10px;padding:20px;margin-bottom:16px;border-bottom:4px solid #e0a100}
+.tghero h3{color:#fff;font-size:18px;margin:0 0 6px}
+.tghero p{margin:0 0 14px;color:#dbe6f0;line-height:1.55;max-width:760px}
+.tgrow{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.tgrow label{display:flex;gap:6px;align-items:center;font-weight:600}
+.tgrow select{width:auto;padding:7px 10px;color:var(--txt)}
+.tgchap{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.tgcard{display:flex;gap:12px;margin:0}
+.tgcard .tgn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.tgcard b{display:block;margin-bottom:3px}
+.tgcard p{margin:0 0 8px;color:var(--mut);line-height:1.45;font-size:12px}
+.tgnote{color:var(--mut);font-size:12px;margin-top:14px;line-height:1.6}
+#tgspot{position:fixed;z-index:150;pointer-events:none;display:none;border-radius:8px;box-shadow:0 0 0 9999px rgba(11,18,32,.6);outline:3px solid #f5b400;transition:left .3s,top .3s,width .3s,height .3s}
+#tgdock{position:fixed;right:12px;bottom:12px;z-index:160;width:min(340px,calc(100vw - 24px));background:rgba(11,42,67,.97);color:#fff;border-radius:12px;padding:8px 10px;box-shadow:0 12px 40px rgba(0,0,0,.45);border-top:3px solid #e0a100}
+#tgdock.top{bottom:auto;top:64px}
+.tgtop{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.tgtop b{font-size:12px}.tgtop span{color:#aab9cc;font-size:11px}
+.tgx{background:none;border:0;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 6px}
+#tgmin{margin-left:auto}
+.tgsub{font-size:12px;line-height:1.45;cursor:pointer;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.tgsub.open{display:block;max-height:30vh;overflow:auto}
+.tgbar{height:3px;background:rgba(255,255,255,.18);border-radius:2px;margin:6px 0}
+.tgbar i{display:block;height:3px;background:#e0a100;border-radius:2px;width:0;transition:width .3s}
+.tgctl{display:flex;gap:6px;align-items:center}
+.tgb{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:8px;padding:4px 9px;cursor:pointer;font-size:13px;min-height:32px}
+.tgb:hover{background:rgba(255,255,255,.26)}
+.tgb.pri{background:#e0a100;color:#2a2100;font-weight:700;min-width:44px}
+.tgset{display:none;flex-direction:column;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.18)}
+.tgset.open{display:flex}
+.tgset select{background:#fff;color:#1f2d3a;padding:5px 6px;font-size:13px}
+.tgset label{display:flex;gap:6px;align-items:center;font-size:12px}
+#tgdock.min{display:flex;align-items:center;gap:8px;width:auto;border-radius:99px;padding:5px 8px 5px 12px}
+#tgdock.min .tgtop{order:2;margin:0}#tgdock.min .tgctl{order:1}
+#tgdock.min #tgchap,#tgdock.min .tgsub,#tgdock.min .tgbar,#tgdock.min .tgset,#tgdock.min .tgctl .tgb:not(.pri){display:none}
+@media(max-width:760px){#tgdock{left:8px;right:8px;width:auto}#tgdock.min{left:auto}}
+@media print{#tgdock,#tgspot{display:none!important}}
 </style>
 </head>
 <body data-company="<?= company ?>">
@@ -385,7 +423,17 @@ function call(kind, action, payload) {
     if (kind === 'pub') r.apiPublic(action, payload || {}); else if (kind === 'emp') r.apiEmployee(action, S.token, payload || {}); else r.apiAdmin(action, S.token, payload || {});
   });
 }
-function P(a, p) { return call('pub', a, p); } function E(a, p) { return call('emp', a, p); } function A(a, p) { return call('adm', a, p); }
+/* drop answers that arrive after the user has already moved to another page */
+function fresh(p) {
+  var pg = S.page;
+  return new Promise(function (res, rej) {
+    p.then(function (v) { if (S.page === pg) res(v); },
+           function (e) { if (S.page === pg || e.code === 'AUTH') rej(e); });
+  });
+}
+function P(a, p) { return call('pub', a, p); }
+function E(a, p) { return fresh(call('emp', a, p)); }
+function A(a, p) { return fresh(call('adm', a, p)); }
 function run(btn, fn) {
   var t = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = 'Please wait...'; }
   return Promise.resolve().then(fn).catch(function (e) { if (e.code === 'AUTH') signOut(e.message); else toast(e.message, true); }).then(function (r) { if (btn) { btn.disabled = false; btn.textContent = t; } return r; });
@@ -746,7 +794,7 @@ H.dClear = function () { S.df = {}; reload(); };
 PG.aapps = function () {
   var f = S.af || {};
   main('<h2>Applications</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="aq" value="' + esc(f.q || '') + '" placeholder="ID, name, reason">') + '</div><div>' + fld('Employee', '<select id="ae">' + empOpts(f.employeeId, 'All') + '</select>') + '</div><div>' + fld('Type', '<select id="at">' + typeOpts(f.leaveType, 'All') + '</select>') + '</div><div>' + fld('Status', '<select id="as">' + opts([['PENDING', 'Pending'], ['APPROVED', 'Approved'], ['REJECTED', 'Rejected'], ['CANCELLED', 'Cancelled']], f.status, 'All') + '</select>') + '</div><div>' + fld('From', '<input type="date" id="af" value="' + esc(f.fromDate || '') + '">') + '</div><div>' + fld('To', '<input type="date" id="ax" value="' + esc(f.toDate || '') + '">') + '</div><div><button class="btn" data-a="aFilter">Search</button> <button class="btn gr" data-a="aClear">Reset</button></div></div><div id="alist" class="ld">Loading...</div></div>');
-  return A('listApplications', f).then(function (l) { $('#alist').className = ''; $('#alist').innerHTML = appTable(l); });
+  return A('listApplications', f).then(function (l) { var al = $('#alist'); if (!al) return; al.className = ''; al.innerHTML = appTable(l); });
 };
 H.aFilter = function () { S.af = { q: v('aq'), employeeId: v('ae'), leaveType: v('at'), status: v('as'), fromDate: v('af'), toDate: v('ax') }; reload(); };
 H.aClear = function () { S.af = {}; reload(); };
@@ -1065,7 +1113,7 @@ H.admDel = function (d) {
 PG.log = function () {
   var f = S.lf || {};
   main('<h2>System Log</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="lq" value="' + esc(f.q || '') + '">') + '</div><div>' + fld('Module', '<select id="lmod">' + opts(['SECURITY', 'LEAVE', 'LEDGER', 'EMPLOYEE', 'ADMIN', 'SETTINGS', 'BONUS', 'UNAUTHORIZED', 'HOLIDAY', 'NOTIFICATION', 'SYSTEM'].map(function (x) { return [x, x]; }), f.module, 'All') + '</select>') + '</div><div><button class="btn" data-a="lGo">Search</button></div></div><div id="ll" class="ld">Loading...</div><div class="hint">Showing the latest 300 matching entries. The log is append-only through the application; administrators cannot edit or delete entries here.</div></div>');
-  return A('listLog', f).then(function (l) { $('#ll').className = ''; $('#ll').innerHTML = tbl(['Time', 'User', 'Action', 'Module', 'Record', 'Old', 'New', 'Remarks', 'Result'], l.map(function (r) { return '<tr><td>' + esc(r.at) + '</td><td>' + esc(r.user) + '<div class="hint">' + esc(r.role) + '</div></td><td>' + esc(r.action) + '</td><td>' + esc(r.module) + '</td><td>' + esc(r.rec) + '</td><td>' + esc(r.oldV) + '</td><td>' + esc(r.newV) + '</td><td>' + esc(r.remarks) + '</td><td>' + badge(r.result === 'SUCCESS' ? 'Active' : 'Inactive').replace(/>[^<]*</, '>' + esc(r.result) + '<') + '</td></tr>'; })); });
+  return A('listLog', f).then(function (l) { var ll = $('#ll'); if (!ll) return; ll.className = ''; ll.innerHTML = tbl(['Time', 'User', 'Action', 'Module', 'Record', 'Old', 'New', 'Remarks', 'Result'], l.map(function (r) { return '<tr><td>' + esc(r.at) + '</td><td>' + esc(r.user) + '<div class="hint">' + esc(r.role) + '</div></td><td>' + esc(r.action) + '</td><td>' + esc(r.module) + '</td><td>' + esc(r.rec) + '</td><td>' + esc(r.oldV) + '</td><td>' + esc(r.newV) + '</td><td>' + esc(r.remarks) + '</td><td>' + badge(r.result === 'SUCCESS' ? 'Active' : 'Inactive').replace(/>[^<]*</, '>' + esc(r.result) + '<') + '</td></tr>'; })); });
 };
 H.lGo = function () { S.lf = { q: v('lq'), module: v('lmod') }; reload(); };
 PG.pwd = function () {
@@ -1073,6 +1121,493 @@ PG.pwd = function () {
 };
 H.pwSave = function (d, b) { run(b, function () { return A('changePassword', { currentPassword: v('pc'), newPassword: v('pn'), confirmPassword: v('pf') }).then(function (r) { signOut(r.message); }); }); };
 
+
+/* ======================= LIVE INSTRUCTIONS GUIDE ======================= */
+var GT = { on: false, play: false, voice: true, lang: 'hi', rate: 1, single: false, ch: [], ci: 0, steps: [], si: 0,
+  cov: [], cur: null, tok: 0, otok: 0, timer: null, place: null, nav: false, form: null, voices: [] };
+
+/* menu entries */
+EN.push(['guide', 'Instructions', '&#9432;']);
+AN.push(['guide', 'Instructions', '&#9432;']);
+
+/* short intro of each page: [Hinglish, English] */
+var GI = {
+  home: ['Aapka dashboard: leave balance, applications aur penalty record.', 'Your dashboard: leave balances, applications and penalty record.'],
+  apply: ['Nayi leave ki application bharne ka form.', 'The form to apply for new leave.'],
+  apps: ['Aapki saari applications aur unka status.', 'All your applications and their status.'],
+  hol: ['Saal ki public holidays ki list.', 'The list of public holidays for the year.'],
+  dash: ['Admin ka overview: cards, charts, pending applications aur employee-wise leave.', 'Admin overview: cards, charts, pending applications and employee-wise leave.'],
+  aapps: ['Saari applications, search aur filter, approve ya reject.', 'All applications with search and filter, approve or reject.'],
+  manual: ['Admin khud se leave entry kare, jaise purani ya notice ke andar ki leave.', 'Admin records leave directly, such as old leave or leave inside the notice period.'],
+  emps: ['Employees ki directory, naya employee, edit, delete aur Bin.', 'Employee directory, add, edit, delete and the Bin.'],
+  bal: ['Sabhi employees ke CL aur SL balance, aur mahine-wise ledger.', 'CL and SL balances of all employees, with the month-wise ledger.'],
+  una: ['Bina approval ki leave ka register aur penalty.', 'Register of unauthorized leave and penalties.'],
+  bonus: ['Diwali bonus: eligible CL, amount aur payment status.', 'Diwali bonus: eligible CL, amount and payment status.'],
+  ahol: ['Public holidays jodna aur badalna.', 'Add and change public holidays.'],
+  set: ['Company ke saare rules aur settings, bina code badle.', 'All company rules and settings, with no code changes.'],
+  admins: ['Administrators ki list, naya admin jodna.', 'List of administrators and adding a new one.'],
+  log: ['Har badlav ka system log.', 'The system log of every change.'],
+  pwd: ['Apna admin password badalna.', 'Change your own admin password.'],
+  guide: ['Yahi live guide.', 'This live guide.']
+};
+var GD = { /* settings group descriptions: [hi, en] */
+  'General': ['Company ka naam, portal on/off, web app link.', 'Company name, portal on/off and web app link.'],
+  'Admin Access': ['Login, session time, lockout, OTP aur password ke niyam. Sirf Owner badal sakta hai.', 'Login, session time, lockout, OTP and password rules. Only the Owner can change these.'],
+  'Leave Policy': ['Mahine ka credit, carry forward, medical proof, backdate aur duration ke niyam.', 'Monthly credit, carry forward, medical proof, backdate and duration rules.'],
+  'Notice Rules': ['Leave ke liye kitne ghante pehle batana zaroori hai.', 'How much advance notice is needed for leave.'],
+  'Diwali Bonus': ['Bonus ka saal, cutoff date, payment date aur bonus rules.', 'Bonus year, cutoff date, payment date and bonus rules.'],
+  'Employees': ['Delete kiye employee Bin me kitne din rahenge.', 'How many days a deleted employee stays in the Bin.'],
+  'Notifications': ['Admin aur employee ko e-mail alerts aur daily reminder.', 'E-mail alerts and the daily reminder for admin and employees.'],
+  'Penalty': ['Bina approval ki leave par salary deduction aur penalty ki rakam.', 'Salary deduction and penalty amounts for unauthorized leave.']
+};
+
+/* ---- the written guide. Each step: [finder, Hinglish, English, {p:pre, k:keep, n:noscroll}] ---- */
+var GS = {
+  home: [
+    ['#main h2', 'Yeh aapka My Dashboard hai. Upar aapka naam dikhta hai. Yahan se aap apni leave ki poori jaankari ek jagah dekh sakte ho.', 'This is your My Dashboard. Your name is at the top. You can see all your leave details in one place.'],
+    ['#main .g5', 'Yeh cards batate hain ki kitni applications Pending hain, aur is saal kitni Approved aur Rejected hui.', 'These cards show how many applications are Pending, and how many were Approved and Rejected this year.'],
+    [{ t: 'Apply for leave', x: 1 }, 'Apply for leave button se nayi leave ki application ka page khulta hai.', 'The Apply for leave button opens the page to submit a new application.'],
+    ['#main .lvg', 'Yahan Casual, Sick aur Other leave ke cards hain. Har card me kitni leave li, kitni mili, kitni lapse hui aur abhi balance kitna hai, yeh dikhta hai. Jo leave aapko assign nahi hai, wahan Not assigned likha hota hai.', 'These are the Casual, Sick and Other leave cards. Each shows how much you used, were credited, lapsed and your balance. A leave type not given to you shows Not assigned.'],
+    [{ t: 'Casual leave ' }, 'Casual leave ka mahine-wise record. Har mahine ki Credit, Used aur Lapsed leave dikhti hai. Casual leave mahine ke end me lapse ho jati hai, isliye usi mahine me use karo.', 'Month-by-month record of Casual leave: credited, used and lapsed. Casual leave lapses at month end, so use it in the same month.'],
+    [{ t: 'Sick leave ' }, 'Sick leave ka mahine-wise record. Sick leave saal ke end tak aage badhti rehti hai.', 'Month-by-month record of Sick leave. Sick leave carries forward until the end of the year.'],
+    [{ t: 'My Unauthorized' }, 'Yahan aapki bina approval ki leave aur penalty ka record dikhta hai. Kuch na ho to Keep it up likha aata hai.', 'This shows your unauthorized leave and penalty record. If there is none, it says Keep it up.'],
+    [{ t: 'Leave Policy' }, 'Yahan company ki leave policy aur penalty ke niyam likhe hain. Leave hamesha pehle se apply karein.', 'The company leave policy and penalty rules are written here. Always apply for leave in advance.']
+  ],
+  apply: [
+    ['#main h2', 'Yeh Apply for Leave ka page hai. Naam aur Employee ID apne aap bhare hote hain.', 'This is the Apply for Leave page. Your name and Employee ID are already filled in.'],
+    ['#lt', 'Pehle leave type chuno: Casual, Sick ya Other. Jo type aapko assign nahi hai wo band dikhta hai. Neeche notice ke ghante likhe hote hain.', 'First choose the leave type: Casual, Sick or Other. A type not given to you is disabled. The notice hours are written below it.'],
+    ['input[name=dt]', 'Single day ya Multiple days chuno. Multiple days chunne par To date ka box bhi aata hai.', 'Choose Single day or Multiple days. Choosing Multiple days also shows a To date box.'],
+    ['#fd', 'Leave ki date chuno. Date chunte hi neeche system batata hai ki kitne din hue aur balance kitna hai.', 'Pick the leave date. As soon as you do, the system shows the number of days and your balance below.'],
+    ['#pv', 'Yeh jagah live check dikhati hai. Hara matlab theek hai. Laal matlab koi dikkat hai, jaise notice kam hai ya balance kam hai.', 'This area shows a live check. Green means fine. Red means a problem, such as short notice or low balance.'],
+    ['#rs', 'Leave ka reason likho. Yeh zaroori hai.', 'Write the reason for leave. This is required.'],
+    ['#dc', 'Declaration par tick lagana zaroori hai. Sick leave jo zyada din ki ho, usme medical certificate bhi lagana padta hai.', 'You must tick the declaration. Longer Sick leave also needs a medical certificate.'],
+    ['[data-a="submit"]', 'Submit application dabane par application Admin ke paas jati hai. Yeh guide isko nahi dabata.', 'Pressing Submit application sends it to the Admin. This guide does not press it.']
+  ],
+  apps: [
+    ['#main h2', 'My Applications. Aapki bheji hui saari applications yahan dikhti hain.', 'My Applications. All the applications you submitted are listed here.'],
+    ['#main table', 'Har row me ID, type, dates, din, status aur Admin ke remarks dikhte hain. Status Pending, Approved, Rejected ya Cancelled ho sakta hai.', 'Each row shows the ID, type, dates, days, status and the Admin remarks. Status can be Pending, Approved, Rejected or Cancelled.'],
+    ['[data-a="eCancel"]', 'Pending application ke aage Cancel button hota hai. Yeh sirf pending application ko cancel karta hai. Approve hone ke baad Admin se baat karni padti hai.', 'A Pending application has a Cancel button. It only cancels pending ones. After approval you must contact the Admin.']
+  ],
+  hol: [
+    ['#main h2', 'Public Holidays. Is saal ki chhuttiyon ki list.', 'Public Holidays. The list of holidays for this year.'],
+    ['#main table', 'Date, holiday ka naam aur notes dikhte hain. Public holidays CL ya SL se nahi kati.', 'Date, holiday name and notes are shown. Public holidays are not deducted from CL or SL.']
+  ],
+  dash: [
+    ['#main h2', 'Yeh Admin Dashboard hai. Poori company ki leave ki tasveer ek jagah.', 'This is the Admin Dashboard. The whole company leave picture in one place.'],
+    ['#main .card .bar', 'Upar filters hain: Year, Employee, Leave type, Status aur dates. Apply dabane par poora dashboard in filters se badal jata hai. Reset se sab saaf hota hai.', 'Filters are at the top: Year, Employee, Leave type, Status and dates. Apply updates the whole dashboard. Reset clears them.'],
+    ['#main .g5', 'Yeh cards ek nazar me batate hain: active employees, applications, pending, approved, rejected, CL aur SL ke use hue din, aaj chhutti par kitne log, Diwali bonus ke eligible CL aur unauthorized incidents.', 'These cards show at a glance: active employees, applications, pending, approved, rejected, CL and SL days used, people on leave today, Diwali bonus eligible CL and unauthorized incidents.'],
+    ['#main .tick', 'Yeh chalti hui patti batati hai ki aaj kaun chhutti par hai. Koi na ho to Full attendance likha aata hai.', 'This running strip shows who is on leave today. If nobody, it says Full attendance.'],
+    ['#main .cs .ch[data-id="charts"]', 'Leave summary charts. Header par click karke kholo. Isme application status, leave type ke hisaab se din, aur mahine-wise approved leave ke charts hain.', 'Leave summary charts. Click the header to open. It has charts of application status, days by leave type and approved leave by month.'],
+    ['#main .cs .ch[data-id="pending"]', 'Pending applications. Yahan woh applications hain jinpar aapka faisla baaki hai. View dabake approve ya reject karo.', 'Pending applications. These are waiting for your decision. Press View to approve or reject.'],
+    ['#main .cs .ch[data-id="recent"]', 'Recent applications. Sabse nayi applications ki chhoti list.', 'Recent applications. A short list of the newest applications.'],
+    ['.ecs', 'Employee-wise cards. Har card me us employee ki CL, SL aur Other leave dikhti hai: kitni use hui, kitni lapse hui aur balance kitna hai.', 'Employee-wise cards. Each card shows that employee\'s CL, SL and Other leave: used, lapsed and balance.']
+  ],
+  aapps: [
+    ['#main h2', 'Applications. Company ki saari applications yahan hain.', 'Applications. All company applications are here.'],
+    ['#main .bar', 'Search box aur filters se application dhundho: employee, type, status aur dates. Search dabao to list badal jati hai.', 'Find an application with the search box and filters: employee, type, status and dates. Press Search to update the list.'],
+    ['#alist table', 'Har row ek application hai. View dabane par poori detail khulti hai.', 'Each row is one application. Press View to open the full details.'],
+    ['#modal .md .kv', 'Application ki poori detail: employee, dates, reason, status, aur medical certificate agar laga hai.', 'Full application details: employee, dates, reason, status and the medical certificate if attached.', { p: 'x:open' }],
+    ['#modal .md .mb h3', 'Leave balance. Yahan dikhta hai ki balance kafi hai ya nahi, taaki approve karne se pehle pata ho.', 'Leave balance. It shows whether the balance is enough so you know before approving.', { p: 'x:open' }],
+    ['#mr', 'Remarks box. Reject karne ke liye remarks likhna zaroori hai.', 'The Remarks box. Remarks are required to reject.', { p: 'x:open' }],
+    ['#modal .md .mf', 'Neeche Approve, Reject aur Edit buttons hain. Approved leave ko baad me cancel bhi kiya ja sakta hai, balance reversal entry se wapas aata hai. Guide inhe nahi dabata.', 'Below are Approve, Reject and Edit buttons. An approved leave can be cancelled later, and the balance returns through a reversal entry. This guide does not press them.', { p: 'x:open' }]
+  ],
+  manual: [
+    ['#main h2', 'Manual Leave Entry. Admin khud leave record karta hai.', 'Manual Leave Entry. The Admin records leave directly.'],
+    ['#main .msg.i', 'Yeh purani leave, notice ke andar ki leave aur corrections ke liye hai. Approved entry ledger ko turant badal deti hai aur har override log hota hai.', 'Use this for old leave, leave inside the notice period and corrections. An approved entry updates the ledger immediately and every override is logged.'],
+    ['#mem', 'Pehle employee chuno.', 'First choose the employee.'],
+    ['#mlt', 'Phir leave type chuno.', 'Then choose the leave type.'],
+    ['#mfd', 'Leave ki date chuno. Multiple days ke liye To date bhi bharo.', 'Choose the leave date. For multiple days fill the To date as well.'],
+    ['#mrs', 'Reason likho.', 'Write the reason.'],
+    ['#mrm', 'Admin remarks zaroori hain. Yeh batate hain ki yeh entry kyun ki gayi.', 'Admin remarks are required. They explain why this entry was made.'],
+    ['#main .sec', 'Overrides. Sirf tab tick karo jab system maange: notice ke andar ya balance se zyada leave. Override ka reason likhna zaroori hai.', 'Overrides. Tick only when the system asks: leave inside the notice window or beyond the balance. An override reason is required.'],
+    ['[data-a="mSave"]', 'Record leave dabane par leave save hoti hai. Guide ise nahi dabata.', 'Record leave saves the entry. This guide does not press it.']
+  ],
+  emps: [
+    ['#main h2', 'Employees. Company ke saare employees ki directory.', 'Employees. The directory of all company employees.'],
+    ['#main .ep-sg', 'Upar ginti hai: kul employees, Active, Inactive aur jinhe Casual leave assign hai.', 'The counts at the top: total employees, Active, Inactive and those with Casual leave.'],
+    ['.ep-pn', 'Directory me naam, contact, department, CL aur SL balance, status aur Edit/Delete buttons hain. Inactive employee dhundhla dikhta hai.', 'The directory shows name, contact, department, CL and SL balance, status and Edit/Delete buttons. An Inactive employee looks faded.'],
+    [{ t: '+ New employee', x: 1 }, '+ New employee se naya employee jodte hain. Aage form dikhate hain.', '+ New employee adds an employee. We show the form next.'],
+    [{ t: 'Bin', x: 1 }, 'Bin button sirf Owner ko dikhta hai. Delete kiya employee yahan jata hai aur 30 din tak restore ho sakta hai.', 'The Bin button is shown to the Owner only. A deleted employee goes here and can be restored for 30 days.', { k: 0 }],
+    ['#en', 'Employee ka poora naam likho.', 'Write the employee\'s full name.', { p: 'form:empForm' }],
+    ['#ee', 'Email ya mobile me se kam se kam ek zaroori hai. Employee isi se login karta hai.', 'At least one of email or mobile is required. The employee logs in with it.', { p: 'form:empForm' }],
+    ['#ej', 'Joining date zaroori hai. Monthly leave credit isi ke hisaab se shuru hota hai.', 'Joining date is required. Monthly leave credit starts based on it.', { p: 'form:empForm' }],
+    ['#al_CL', 'Leave types: kaun si leave is employee ko di gayi hai, yahan tick karo. Jo tick nahi, wo employee use nahi kar sakta.', 'Leave types: tick which leave this employee gets. Unticked types cannot be used by the employee.', { p: 'form:empForm' }],
+    ['[data-a="empSave"]', 'Save dabane par employee judta hai. Guide ise nahi dabata.', 'Save adds the employee. This guide does not press it.', { p: 'form:empForm' }]
+  ],
+  bal: [
+    ['#main h2', 'Leave Balances and Ledger.', 'Leave Balances and Ledger.'],
+    ['#main .bar', 'Year chuno. Print se yeh poori list print hoti hai.', 'Choose the year. Print prints this whole list.'],
+    ['#main .card.mw .mw-sum', 'Upar company ka total: employees, CL balance, CL lapsed aur SL balance.', 'The company totals at the top: employees, CL balance, CL lapsed and SL balance.'],
+    ['#main .mw-r', 'Har row me ek employee ke CL, SL aur Other leave ke chips hain: Credited, Used, Lapsed aur Balance. Ledger dabane par mahine-wise poori history khulti hai.', 'Each row shows an employee\'s CL, SL and Other leave chips: Credited, Used, Lapsed and Balance. Press Ledger for the full month-wise history.'],
+    ['#modal .md .card.mw', 'Ledger window. Casual aur Sick leave ka mahine-wise table.', 'The Ledger window. A month-wise table of Casual and Sick leave.', { p: 'x:ledger' }],
+    [{ t: 'Transactions', in: '#modal' }, 'Transactions me har entry hai: Credit, Use, Lapse, Reversal aur Adjust. Kuch bhi kabhi delete nahi hota.', 'Transactions lists every entry: Credit, Use, Lapse, Reversal and Adjust. Nothing is ever deleted.', { p: 'x:ledger' }],
+    ['[data-a="adjForm"]', 'Adjust balance se Admin balance badha ya ghata sakta hai. Reason zaroori hai aur ledger me entry banti hai.', 'Adjust balance lets the Admin add or deduct balance. A reason is required and a ledger entry is made.', { p: 'x:ledger' }]
+  ],
+  una: [
+    ['#main h2', 'Unauthorized Leave Register.', 'Unauthorized Leave Register.'],
+    ['#main .msg.w', 'Yahan company ki penalty policy likhi hai. System sirf record karta hai, salary kabhi apne aap nahi kaatta aur kisi ko nikalta nahi.', 'The company penalty policy is written here. The system only records. It never deducts salary or terminates anyone automatically.'],
+    ['#main .card table', 'Har incident ka ID, employee, dates, occurrence number, salary deduction, penalty aur remarks. Correct dabake galti sudhar sakte ho, reason dena padta hai.', 'Each incident shows ID, employee, dates, occurrence number, salary deduction, penalty and remarks. Correct fixes a mistake and needs a reason.'],
+    ['#ue', 'Employee chuno.', 'Choose the employee.', { p: 'form:unaForm' }],
+    ['#ui', 'Incident date aur From, To dates bharo.', 'Fill the incident date and the From and To dates.', { p: 'form:unaForm' }],
+    ['[data-a="unaSuggest"]', 'Suggest penalty se policy ke hisaab se salary din aur penalty apne aap bhar jati hai. Yeh sirf suggestion hai.', 'Suggest penalty fills the salary days and penalty from policy. It is only a suggestion.', { p: 'form:unaForm' }],
+    ['#ur', 'Admin remarks zaroori hain.', 'Admin remarks are required.', { p: 'form:unaForm' }]
+  ],
+  bonus: [
+    ['#main h2', 'Diwali Bonus.', 'Diwali Bonus.'],
+    ['#main .msg.i', 'Sirf wahi Casual leave gini jati hai jo cutoff date tak sach me lapse hui. Use ki hui CL aur abhi lapse na hui CL nahi ginti. Yeh page Owner ke liye hai, ya jab setting me Admin ko bhi allow ho.', 'Only Casual leave that actually lapsed by the cutoff date counts. Used CL and CL not yet lapsed do not count. This page is for the Owner, or Admins if allowed in Settings.'],
+    ['#by2', 'Bonus year aur Cutoff date. Calculate eligibility dabane par eligible CL aur amount nikalta hai. Guide ise nahi dabata.', 'Bonus year and Cutoff date. Calculate eligibility works out eligible CL and amounts. This guide does not press it.'],
+    ['#main .card.mw .mw-sum', 'Total employees, eligible CL, kul amount aur Pending ginti.', 'Total employees, eligible CL, the total amount and the Pending count.'],
+    ['#main .mw-r', 'Har employee ki row: CL lapsed, eligible CL, amount, status aur payment date. Hari highlighted row ka matlab eligible CL hai. Update se status Pending, Processed ya Paid karte hain.', 'Each employee row: CL lapsed, eligible CL, amount, status and payment date. A highlighted row has eligible CL. Update sets status to Pending, Processed or Paid.']
+  ],
+  ahol: [
+    ['#main h2', 'Public Holidays. Admin yahan holidays jodta hai.', 'Public Holidays. The Admin adds holidays here.'],
+    ['#main .msg.i', 'Saal ka allowance aur abhi kitni holidays set hain, yahan dikhta hai. Holidays CL ya SL se nahi kati.', 'The yearly allowance and how many holidays are set are shown here. Holidays are not deducted from CL or SL.'],
+    ['#hy', 'Year badal ke Show dabao.', 'Change the year and press Show.'],
+    ['#hd', 'Holiday ki date chuno.', 'Choose the holiday date.', { p: 'form:holForm' }],
+    ['#hn', 'Holiday ka naam likho. Status Active ya Inactive chun sakte ho.', 'Write the holiday name. You can set the status to Active or Inactive.', { p: 'form:holForm' }]
+  ],
+  set: [
+    ['#main h2', 'Settings. Company ke saare niyam yahin badalte hain, code kholne ki zaroorat nahi.', 'Settings. All company rules are changed here, with no code to open.'],
+    ['#main .msg.i', 'Badlav turant lagu hote hain aur System Log me likhe jate hain. Admin Access aur Employees ki settings sirf Owner badal sakta hai.', 'Changes apply immediately and are written to the System Log. Admin Access and Employees settings can be changed only by the Owner.'],
+    ['[data-a="setSave"]', 'Badlav karke Save all changes dabana zaroori hai, tabhi wo save hote hain.', 'You must press Save all changes after editing, or nothing is saved.'],
+    [{ t: 'Run daily maintenance', x: 0 }, 'Run daily maintenance se monthly credit, lapse aur year-end expiry abhi chalta hai. Send pending reminder se pending applications ki mail abhi jati hai.', 'Run daily maintenance runs monthly credit, lapse and year-end expiry now. Send pending reminder emails the pending applications now.'],
+    [{ t: 'Bonus rules' }, 'Bonus rules: Manual, Flat Rs sab ke liye, ya Flat Rs har eligible CL par. In Use wala rule Calculate eligibility me kaam aata hai.', 'Bonus rules: Manual, Flat Rs for everyone, or Flat Rs per eligible CL. The In use rule is applied in Calculate eligibility.'],
+    [{ t: '+ Add rule', x: 1 }, '+ Add rule se naya bonus rule banta hai. Yeh sirf Owner ko dikhta hai.', '+ Add rule creates a new bonus rule. Only the Owner sees it.'],
+    ['#ruleName', 'Rule form me naam, type aur value bharte hain.', 'The rule form takes a name, type and value.', { p: 'form:ruleForm', k: 0 }]
+  ],
+  admins: [
+    ['#main h2', 'Administrators. Jo log is portal ko chala sakte hain.', 'Administrators. The people who can run this portal.'],
+    ['#main .card table', 'Har admin ka ID, naam, email, mobile, role, status aur password set hai ya nahi.', 'Each admin\'s ID, name, email, mobile, role, status and whether a password is set.'],
+    [{ t: '+ Add administrator', x: 1 }, 'Naya admin sirf Owner jod sakta hai. Naya admin Forgot password se apna pehla password banata hai.', 'Only the Owner can add an admin. A new admin sets the first password with Forgot password.'],
+    ['#an', 'Naam, email aur role chuno. Role Admin ya Owner hota hai. Kam se kam ek Owner active rehna chahiye.', 'Enter the name, email and role. The role is Admin or Owner. At least one Owner must stay active.', { p: 'form:admForm' }]
+  ],
+  log: [
+    ['#main h2', 'System Log. Har badlav ka record.', 'System Log. A record of every change.'],
+    ['#lq', 'Search me email, action ya record ID likho.', 'Search by email, action or record ID.'],
+    ['#lmod', 'Module chuno, jaise SECURITY, LEAVE ya BONUS, aur Search dabao.', 'Choose a module such as SECURITY, LEAVE or BONUS and press Search.'],
+    ['#ll', 'Yahan latest 300 entries dikhti hain: kisne, kab, kya badla, purani aur nayi value. Log me koi entry edit ya delete nahi ho sakti.', 'The latest 300 entries show here: who, when, what changed, old and new value. No log entry can be edited or deleted.']
+  ],
+  pwd: [
+    ['#main h2', 'Change Password. Apna admin password yahan badlo.', 'Change Password. Change your admin password here.'],
+    ['#pc', 'Pehle abhi ka password likho.', 'First enter your current password.'],
+    ['#pn', 'Naya password kam se kam 8 akshar ka, letters aur numbers ke saath.', 'The new password must be at least 8 characters with letters and numbers.'],
+    ['[data-a="pwSave"]', 'Badalne ke baad sab sessions sign out ho jate hain. Guide ise nahi dabata.', 'After changing it, all sessions are signed out. This guide does not press it.']
+  ]
+};
+
+/* ---------------- finding things on the real page ---------------- */
+function tgN(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }
+function tgC(s) { return tgN(s).replace(/[▾▴↑↓●×*]/g, '').trim().toLowerCase().slice(0, 60); }
+function tgVis(el) { return !!(el && el.getClientRects && el.getClientRects().length && !(el.closest && el.closest('#tgdock'))); }
+function tgQS(css) { try { var l = $$(css); for (var i = 0; i < l.length; i++) if (tgVis(l[i])) return l[i]; } catch (e) { } return null; }
+function tgExp(el) {
+  if (!el) return null;
+  if (el.tagName === 'H3') { return el.closest('.card') || el; }
+  if (el.tagName === 'INPUT' && (el.type === 'checkbox' || el.type === 'radio')) return el.closest('label') || el;
+  return el;
+}
+function tgFind(sp) {
+  if (!sp) return null;
+  if (typeof sp === 'function') { try { return sp(); } catch (e) { return null; } }
+  if (typeof sp === 'string') return tgExp(tgQS(sp));
+  if (sp.t) {
+    var sc = $(sp.in || '#main'); if (!sc) return null;
+    var want = tgN(sp.t).toLowerCase(), l = $$('button,a,h2,h3,label,th,.btn', sc), a = null, b = null;
+    for (var j = 0; j < l.length; j++) {
+      var el = l[j]; if (!tgVis(el)) continue;
+      var tx = tgN(el.textContent).toLowerCase();
+      if (sp.x) { if (tx === want) { a = el; break; } continue; }
+      if (tx.indexOf(want) === 0) { a = el; break; }
+      if (!b && tx.indexOf(want) > -1) b = el;
+    }
+    return tgExp(a || b);
+  }
+  return null;
+}
+function tgMark(el) {
+  if (!el) return;
+  function add(s) { s = tgC(s); if (s.length >= 3) GT.cov.push(s); }
+  add(String(el.textContent || '').slice(0, 80));
+  $$('h3', el).forEach(function (h) { add(h.textContent); });
+  if (el.tagName === 'H3') add(el.textContent);
+}
+function tgCovered(txt) {
+  var c = tgC(txt); if (c.length < 3) return true;
+  return GT.cov.some(function (s) { return s === c || (s.length >= 5 && c.indexOf(s) === 0) || (c.length >= 5 && s.indexOf(c) === 0); });
+}
+/* new sections that the written guide did not mention are picked up automatically */
+function tgAutoPage() {
+  var out = [], seen = {};
+  $$('#main h3').forEach(function (h) {
+    if (!tgVis(h)) return;
+    var name = tgN(h.textContent); if (!name || seen[name] || tgCovered(name)) return;
+    seen[name] = 1; GT.cov.push(tgC(name));
+    var d = GD[name];
+    out.push({
+      f: function () { var l = $$('#main h3'); for (var i = 0; i < l.length; i++) if (tgN(l[i].textContent) === name && tgVis(l[i])) return tgExp(l[i]); return null; },
+      h: '"' + name + '" section. ' + (d ? d[0] : 'Is page ka yeh hissa hai, yahan isse juda data dikhta hai.'),
+      e: '"' + name + '" section. ' + (d ? d[1] : 'This part of the page shows the related data.'), p: '', k: false, n: false
+    });
+  });
+  return out.slice(0, 12);
+}
+
+/* ---------------- chapters ---------------- */
+function tgNavList() { return (S.role === 'emp' ? EN : AN).filter(function (n) { return n[0] !== '|' && n[0] !== 'guide'; }); }
+function tgChapters() {
+  var out = [{ id: '_menu', label: 'Menu & sign out', intro: ['Upar ka header, left menu aur sign out.', 'The top header, the left menu and sign out.'] }];
+  tgNavList().forEach(function (n) { out.push({ id: n[0], label: n[1], intro: GI[n[0]] || ['', ''] }); });
+  return out;
+}
+function tgMk(o) { var x = o[3] || {}; return { f: o[0], h: o[1], e: o[2], p: x.p || '', k: !!x.k, n: !!x.n }; }
+function tgMenuSteps() {
+  var out = [
+    { f: '.top .brand', h: 'Upar ' + CO + ' ka naam dikhta hai. Yahi header har page par rehta hai.', e: 'At the top you see the ' + CO + ' name. This header stays on every page.', k: true },
+    { f: '#nav', h: 'Yeh left menu hai. Ab ek ek karke har page ka kaam batate hain. Mobile par upar ka menu button dabane se yahi menu khulta hai.', e: 'This is the left menu. Now we go through each page one by one. On mobile, the menu button at the top opens this same menu.', p: 'nav', k: true }
+  ];
+  tgNavList().forEach(function (n) {
+    var g = GI[n[0]] || ['', ''], lab = tgN(n[1].replace(/&amp;/g, '&'));
+    out.push({ f: '#nav a[data-p="' + n[0] + '"]', h: lab + '. ' + g[0], e: lab + '. ' + g[1], p: 'nav', k: true });
+  });
+  out.push({ f: '#nav a[data-p="guide"]', h: 'Instructions. Yahi live guide, jo kabhi bhi dobara chala sakte ho.', e: 'Instructions. This live guide, which you can replay any time.', p: 'nav', k: true });
+  out.push({ f: '[data-a="logout"]', h: 'Kaam khatam hone par Sign out dabao. Kuch der kuch na karo to session apne aap band ho jata hai.', e: 'Press Sign out when you finish. If you do nothing for a while, the session closes by itself.', k: true });
+  return out;
+}
+function tgBuild(ch) {
+  if (ch.id === '_menu') return tgMenuSteps();
+  var out = (GS[ch.id] || []).map(tgMk);
+  if (!out.length) out.push({ f: '#main h2', h: ch.label + '. ' + ch.intro[0], e: ch.label + '. ' + ch.intro[1], k: true });
+  out.push({ a: 'page' });
+  return out;
+}
+
+/* ---------------- running the tour ---------------- */
+function tgReset(s) {
+  var p = (s && s.p) || '';
+  if (GT.form && p !== GT.form) { try { closeModal(); } catch (e) { } GT.form = null; }
+  if (p !== 'nav') { var n = $('#nav'); if (n) n.classList.remove('open'); }
+}
+function tgPre(s) {
+  var p = s.p || '';
+  try {
+    if (p === 'nav') { var n = $('#nav'); if (n && window.innerWidth <= 760) n.classList.add('open'); }
+    else if (p.indexOf('form:') === 0) {
+      if (GT.form !== p || !$('#modal .md')) { closeModal(); var fn = H[p.slice(5)]; if (fn) fn({}, null); GT.form = p; }
+    } else if (p === 'x:open') {
+      if (GT.form !== p) { var b = $('#main [data-a="open"]'); GT.form = p; if (b) H.open({ id: b.getAttribute('data-id') }, null); }
+    } else if (p === 'x:ledger') {
+      if (GT.form !== p) { var l = $('#main [data-a="ledger"]'); GT.form = p; if (l) H.ledger({ id: l.getAttribute('data-id') }, null); }
+    }
+  } catch (e) { }
+  return new Promise(function (ok) {
+    if (s.a || !s.f) return setTimeout(ok, 60);
+    var t0 = Date.now(), lim = s.k ? 350 : (p.indexOf('x:') === 0 ? 6000 : 1500);
+    (function chk() { if (tgFind(s.f) || Date.now() - t0 > lim) return ok(); setTimeout(chk, 100); })();
+  });
+}
+function tgReady() {
+  return new Promise(function (ok) {
+    var t0 = Date.now();
+    (function chk() {
+      var m = $('#main'), ld = m && m.querySelector('.ld');
+      var busy = !m || !m.children.length || (ld && /Loading/i.test(ld.textContent));
+      if (!busy || Date.now() - t0 > 10000) return setTimeout(ok, 250);
+      setTimeout(chk, 150);
+    })();
+  });
+}
+function tgTxt(s, el) {
+  var t = (GT.lang === 'en' && s.e) ? s.e : s.h;
+  try { if (typeof t === 'function') t = t(el); } catch (e) { t = ''; }
+  return String(t || '');
+}
+function tgPlace() {
+  var sp = $('#tgspot'); if (!sp) return;
+  if (!GT.cur) { sp.style.display = 'none'; return; }
+  var el = GT.cur.el;
+  if (!el || !document.body.contains(el) || !tgVis(el)) el = GT.cur.el = tgFind(GT.cur.f);
+  if (!el) { sp.style.display = 'none'; return; }
+  var r = el.getBoundingClientRect(), pad = 6, d = $('#tgdock');
+  if (d && window.innerWidth > 760) {
+    d.classList.remove('top');
+    var q = d.getBoundingClientRect();
+    if (!(r.right < q.left || r.left > q.right || r.bottom < q.top || r.top > q.bottom)) d.classList.add('top');
+  }
+  sp.style.display = 'block';
+  sp.style.left = (r.left - pad) + 'px'; sp.style.top = (r.top - pad) + 'px';
+  sp.style.width = (r.width + pad * 2) + 'px'; sp.style.height = (r.height + pad * 2) + 'px';
+}
+function tgVoice() {
+  var vs = GT.voices; if (!vs || !vs.length) return null;
+  function pick(re) { return vs.filter(function (v) { return re.test(v.lang); })[0]; }
+  var r = GT.lang === 'en' ? (pick(/^en[-_]IN/i) || pick(/^en[-_]GB/i) || pick(/^en/i)) : (pick(/^hi/i) || pick(/^en[-_]IN/i) || pick(/^en/i));
+  return r || vs[0];
+}
+function tgSpeak(text, tok, done) {
+  var est = Math.max(3500, text.length * 58 / GT.rate), fired = false, t0 = Date.now(), ss = window.speechSynthesis;
+  function fin() { if (fired || tok !== GT.tok || !GT.play || !GT.on) return; fired = true; clearTimeout(GT.timer); done(); }
+  function endSoon() { setTimeout(fin, Math.max(450, est * 0.55 - (Date.now() - t0))); }
+  if (GT.voice && ss) {
+    setTimeout(function () {
+      if (tok !== GT.tok || !GT.play) return;
+      var v = tgVoice();
+      var parts = (text.match(/[^.!?\u0964]+[.!?\u0964]*/g) || [text]).map(function (p) { return p.trim(); }).filter(Boolean);
+      parts.forEach(function (p, i) {
+        var u = new SpeechSynthesisUtterance(p);
+        u.lang = v ? v.lang : (GT.lang === 'en' ? 'en-IN' : 'hi-IN'); if (v) u.voice = v; u.rate = GT.rate;
+        if (i === parts.length - 1) { u.onend = endSoon; u.onerror = endSoon; }
+        ss.speak(u);
+      });
+    }, 90);
+    GT.timer = setTimeout(fin, est * 2.8 + 2500);
+  } else GT.timer = setTimeout(fin, est);
+}
+function tgRun() {
+  if (!GT.on || !GT.play) return;
+  var s = GT.steps[GT.si];
+  if (!s) return tgNextChapter();
+  GT.tok++; var tok = GT.tok; clearTimeout(GT.timer);
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  tgReset(s);
+  tgPre(s).then(function () {
+    if (tok !== GT.tok || !GT.on || !GT.play) return;
+    if (s.a) {
+      var gen = []; try { gen = tgAutoPage() || []; } catch (e) { gen = []; }
+      GT.steps.splice.apply(GT.steps, [GT.si, 1].concat(gen));
+      tgDockUpdate(); return tgRun();
+    }
+    var el = tgFind(s.f);
+    if (!el && !s.k) { GT.si++; return tgRun(); }
+    GT.cur = { f: s.f, el: el };
+    if (el) { tgMark(el); if (!s.n) { try { el.scrollIntoView({ block: 'center', inline: 'nearest' }); } catch (e) { } } }
+    var txt = tgTxt(s, el);
+    if (!txt) { GT.si++; return tgRun(); }
+    $('#tgsub').textContent = txt; $('#tgsub').classList.remove('open');
+    tgDockUpdate(); tgPlace(); setTimeout(tgPlace, 80);
+    tgSpeak(txt, tok, function () { GT.si++; tgRun(); });
+  }).catch(function () { if (tok === GT.tok) { GT.si++; tgRun(); } });
+}
+function tgOpenChapter(ci) {
+  var my = ++GT.otok;
+  GT.tok++; clearTimeout(GT.timer);
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  tgReset();
+  GT.ci = ci; GT.steps = []; GT.si = 0; GT.cov = []; GT.cur = null;
+  tgPlace();
+  var ch = GT.ch[ci];
+  if ($('#tgsub')) $('#tgsub').textContent = 'Loading...';
+  tgDockUpdate();
+  var view = ch.id === '_menu' ? (S.role === 'emp' ? 'home' : 'dash') : ch.id;
+  GT.nav = true; try { H.go({ p: view }); } catch (e) { } GT.nav = false;
+  tgReady().then(function () {
+    if (my !== GT.otok || !GT.on) return;
+    GT.steps = tgBuild(ch); GT.si = 0; tgDockUpdate();
+    if (GT.play) tgRun();
+  });
+}
+function tgNextChapter() { if (GT.single || GT.ci >= GT.ch.length - 1) return tgFinish(); tgOpenChapter(GT.ci + 1); }
+function tgFinish() { tgEnd(true); toast(GT.lang === 'en' ? 'Guide finished.' : 'Guide poora hua.'); }
+function tgStart(ci, single) {
+  tgEnd(false);
+  GT.ch = tgChapters(); GT.single = !!single; GT.on = true; GT.play = true; GT.min = false;
+  if (!window.speechSynthesis) GT.voice = false;
+  tgBuildDock(); tgLoadVoices();
+  clearInterval(GT.place); GT.place = setInterval(tgPlace, 200);
+  tgOpenChapter(ci || 0);
+}
+function tgEnd(back) {
+  var was = GT.on;
+  GT.on = false; GT.play = false; GT.otok++; GT.tok++; GT.cur = null;
+  clearTimeout(GT.timer); clearInterval(GT.place);
+  if (window.speechSynthesis) speechSynthesis.cancel();
+  var d = $('#tgdock'); if (d) d.remove();
+  var s = $('#tgspot'); if (s) s.remove();
+  if (was) tgReset();
+  if (was && back) { GT.nav = true; try { H.go({ p: 'guide' }); } finally { GT.nav = false; } }
+}
+
+/* ---------------- player ---------------- */
+function tgLoadVoices() { GT.voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = tgLoadVoices;
+function tgBuildDock() {
+  if ($('#tgdock')) return;
+  var hv = !!window.speechSynthesis, d = document.createElement('div'); d.id = 'tgdock';
+  d.innerHTML = '<div class="tgtop"><b id="tgchap"></b><span id="tgcnt"></span><button class="tgx" id="tgmin" data-a="tgMin" title="Minimize">&ndash;</button><button class="tgx" data-a="tgClose" title="Close">&times;</button></div>' +
+    '<div class="tgsub" id="tgsub" data-a="tgExp" title="Tap to expand"></div><div class="tgbar"><i id="tgprog"></i></div>' +
+    '<div class="tgctl"><button class="tgb" data-a="tgCh" data-d="-1" title="Previous page">&#9198;</button><button class="tgb" data-a="tgSk" data-d="-1" title="Previous step">&#9664;</button>' +
+    '<button class="tgb pri" id="tgplay" data-a="tgToggle">&#9208;</button><button class="tgb" data-a="tgSk" data-d="1" title="Next step">&#9654;</button><button class="tgb" data-a="tgCh" data-d="1" title="Next page">&#9197;</button>' +
+    '<button class="tgb" data-a="tgGear" style="margin-left:auto" title="Page, language, speed">&#9881;</button></div>' +
+    '<div class="tgset" id="tgset"><select id="tgsel" data-ch="tgJump"></select>' +
+    '<select id="tglang" data-ch="tgLang"><option value="hi">Hinglish</option><option value="en">English</option></select>' +
+    (hv ? '<label><input type="checkbox" id="tgvon" data-ch="tgVoice"' + (GT.voice ? ' checked' : '') + '> Voice</label><select id="tgrate" data-ch="tgRate"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.2">Fast</option></select>' : '') + '</div>';
+  document.body.appendChild(d);
+  var s = document.createElement('div'); s.id = 'tgspot'; document.body.appendChild(s);
+  $('#tgsel').innerHTML = GT.ch.map(function (c, i) { return '<option value="' + i + '">' + (i + 1) + '. ' + esc(c.label.replace(/&amp;/g, '&')) + '</option>'; }).join('');
+  $('#tglang').value = GT.lang;
+}
+function tgDockUpdate() {
+  if (!$('#tgdock')) return;
+  var ch = GT.ch[GT.ci], n = GT.steps.length;
+  $('#tgchap').textContent = ch ? ch.label.replace(/&amp;/g, '&') : '';
+  $('#tgcnt').textContent = (GT.ci + 1) + '/' + GT.ch.length + (n ? ' \u00b7 ' + Math.min(GT.si + 1, n) + '/' + n : '');
+  $('#tgplay').innerHTML = GT.play ? '&#9208;' : '&#9654;';
+  $('#tgsel').value = String(GT.ci);
+  $('#tgprog').style.width = (((GT.ci + (n ? Math.min(GT.si, n) / n : 0)) / GT.ch.length) * 100) + '%';
+}
+H.tgStart = function (d) { tgStart(+d.i, d.s === '1'); };
+H.tgClose = function () { tgEnd(true); };
+H.tgExp = function (d, b) { b.classList.toggle('open'); };
+H.tgGear = function () { var s = $('#tgset'); if (s) s.classList.toggle('open'); };
+H.tgMin = function () { var dk = $('#tgdock'); if (!dk) return; GT.min = !GT.min; dk.classList.toggle('min', GT.min); $('#tgmin').innerHTML = GT.min ? '&#9650;' : '&ndash;'; tgPlace(); };
+H.tgToggle = function () {
+  if (GT.play) { GT.play = false; GT.tok++; clearTimeout(GT.timer); if (window.speechSynthesis) speechSynthesis.cancel(); tgDockUpdate(); }
+  else { GT.play = true; tgDockUpdate(); tgRun(); }
+};
+H.tgSk = function (d) {
+  if (!GT.on) return; var i = GT.si + (+d.d); if (i < 0) i = 0;
+  if (i >= GT.steps.length) return tgNextChapter();
+  GT.play = true; GT.si = i; tgRun();
+};
+H.tgCh = function (d) { if (!GT.on) return; var i = GT.ci + (+d.d); if (i < 0 || i >= GT.ch.length) return; GT.play = true; tgOpenChapter(i); };
+CHG.tgJump = function (el) { if (!GT.on) return; GT.play = true; tgOpenChapter(+el.value); };
+CHG.tgRate = function (el) { GT.rate = parseFloat(el.value) || 1; if (GT.on && GT.play && GT.voice) tgRun(); };
+CHG.tgVoice = function (el) {
+  GT.voice = el.checked;
+  $$('[data-ch="tgVoice"]').forEach(function (x) { x.checked = GT.voice; });
+  if (GT.on && GT.play) tgRun();
+};
+CHG.tgLang = function (el) {
+  GT.lang = el.value === 'en' ? 'en' : 'hi';
+  $$('[data-ch="tgLang"]').forEach(function (x) { x.value = GT.lang; });
+  if (GT.on && GT.play) tgRun(); else if (!GT.on && S.page === 'guide') PG.guide();
+};
+document.addEventListener('keydown', function (e) { if (GT.on && e.key === 'Escape') tgEnd(true); });
+window.addEventListener('beforeunload', function () { if (window.speechSynthesis) speechSynthesis.cancel(); });
+
+/* stop the guide on any page change and on sign out */
+var tgGoOrig = H.go;
+H.go = function (d) { if (!GT.nav && GT.on) tgEnd(false); return tgGoOrig(d); };
+var tgSignOrig = signOut;
+signOut = function (m) { tgEnd(false); return tgSignOrig(m); };
+
+/* ---------------- the Instructions page ---------------- */
+PG.guide = function () {
+  GT.ch = tgChapters();
+  var en = GT.lang === 'en', hv = !!window.speechSynthesis;
+  var cards = GT.ch.map(function (c, i) {
+    return '<div class="card tgcard"><div class="tgn">' + (i + 1) + '</div><div><b>' + c.label + '</b><p>' + esc(c.intro[en ? 1 : 0]) +
+      '</p><button class="btn sm" data-a="tgStart" data-i="' + i + '" data-s="1">&#9654; ' + (en ? 'Only this page' : 'Sirf yeh page') + '</button></div></div>';
+  }).join('');
+  main('<h2>Instructions</h2><div class="tghero"><h3>' + esc(CO) + ': live guide</h3>' +
+    '<p>' + (en ? 'Press play and keep the sound on. The guide opens each page, lights up the important part and explains it by voice. You can pause, skip a step or pick any page at any time.'
+      : 'Play dabao aur sound on rakho. Guide ek ek page kholta hai, zaroori jagah ko roshan karta hai aur awaaz me samjhata hai. Beech me Pause, Agla step ya koi bhi page chun sakte ho.') + '</p>' +
+    '<div class="tgrow"><button class="btn" style="background:#e0a100;color:#2a2100" data-a="tgStart" data-i="0" data-s="0">&#9654; ' + (en ? 'Play the full guide' : 'Poora guide chalao') + '</button>' +
+    (hv ? '<label><input type="checkbox" data-ch="tgVoice"' + (GT.voice ? ' checked' : '') + '> Voice</label>' : '') +
+    '<select data-ch="tgLang"><option value="hi"' + (en ? '' : ' selected') + '>Hinglish</option><option value="en"' + (en ? ' selected' : '') + '>English</option></select></div></div>' +
+    '<div class="tgchap">' + cards + '</div>' +
+    '<div class="tgnote">' + (en ? 'The guide runs on your real screens, so real data such as employee names may appear. It never saves, deletes, approves or sends anything. ' : 'Guide aapki asli screens par chalta hai, isliye asli data jaise employees ke naam dikh sakte hain. Yeh kuch save, delete, approve ya send nahi karta. ') +
+    (hv ? (en ? 'Voice uses your device\'s built-in voice. For Hindi, the device needs a Hindi (hi-IN) voice installed.' : 'Voice aapke device ki built-in voice hai. Hindi ke liye device me Hindi (hi-IN) voice install honi chahiye.') : (en ? 'This browser has no voice support, so read the text in the guide bar.' : 'Is browser me voice support nahi hai, guide bar ka text padhiye.')) + '</div>');
+};
 /* ---------- boot ---------- */
 (function () {
   var st = null; try { st = JSON.parse(sessionStorage.getItem('kl') || 'null'); } catch (e) { }
