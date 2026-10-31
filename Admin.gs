@@ -608,8 +608,8 @@ function purgeRows_(key, col, value) {
   const keep = vals.filter(r => String(r[idx]) !== String(value));
   const removed = vals.length - keep.length;
   if (!removed) return 0;
-  sh.getRange(2, 1, vals.length, n).clearContent();
   if (keep.length) sh.getRange(2, 1, keep.length, n).setValues(keep);
+  sh.getRange(keep.length + 2, 1, removed, n).clearContent();
   return removed;
 }
 
