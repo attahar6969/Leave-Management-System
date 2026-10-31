@@ -5,7 +5,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= company ?></title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap">
 <style>
 :root{--navy:#0f3d5e;--navy2:#165a8a;--bg:#f2f5f9;--line:#dbe3ec;--txt:#1f2d3a;--mut:#667788;--ok:#1b8a4b;--okb:#e4f5ea;--warn:#a86a00;--warnb:#fff3d6;--bad:#c0392b;--badb:#fdeaea;--gry:#6b7785;--gryb:#eceff3}
 *{box-sizing:border-box}
@@ -148,14 +147,25 @@ main > p{display:flex;flex-wrap:wrap;gap:10px}
   .lbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
 }
 
-/* ===== COMPANY NAME FONT (white, Copperplate style) ===== */
+/* ===== COMPANY NAME (normal font) + clean mobile header ===== */
 .lbrand h1,.top .brand{
-  font-family:"Copperplate Gothic Bold","Copperplate Gothic","Copperplate","Cinzel",Georgia,serif;
-  font-weight:400;
+  font-family:"Segoe UI",Roboto,Arial,sans-serif;
+  font-weight:700;
   color:#fff;
-  letter-spacing:.8px;
+  letter-spacing:0;
 }
-.top .brand small{font-family:"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:0}
+.top .brand{min-width:0;line-height:1.2}
+.top .brand small{font-weight:400;letter-spacing:0}
+
+@media(max-width:760px){
+  .top{gap:8px;padding:0 10px}
+  .top .brand{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top .brand small{font-size:10px;overflow:hidden;text-overflow:ellipsis}
+  .who{gap:6px;flex-shrink:0}
+  .who .chip{display:none}
+  .top .btn.sm{padding:6px 12px;min-height:36px}
+  .burger{min-width:40px}
+}
 
 /* ===== LEAVE POLICY POPUP ===== */
 .md.pol .mb{max-height:62vh;overflow:auto}
@@ -494,7 +504,7 @@ function login(msg) {
       b += '<div data-enter="aLogin"><div class="demo"><b>Demo account</b>Email <code>alexpadillagc29@gmail.com</code><br>Password <code>password123</code></div>' + fld('Email or mobile number', '<input type="text" id="li" autocomplete="username">') + fld('Password', '<input type="password" id="lp" autocomplete="current-password">') + '<div id="lm"></div><p><button class="btn" data-a="aLogin" style="width:100%">Sign in</button></p><p><button class="lnk" data-a="toForgot">Forgot password? / First-time sign in</button></p></div>';
     }
   }
-  $('#app').innerHTML = '<div class="login"><div class="lbrand"><div class="lgo">' + logoHtml() + '</div><div class="lbt"><h1>' + esc(CO) + '</h1><p>Leave Management Portal. Apply for leave, track approvals and view your leave balance in one place.</p><ul class="lfeat"><li><span>&#9998;</span>Apply for leave in a few taps</li><li><span>&#10003;</span>Track approval status</li><li><span>&#8721;</span>See CL and SL balance month by month</li></ul></div></div><div class="lform"><div class="lbox">' + b + '</div></div></div>';
+  $('#app').innerHTML = '<div class="login"><div class="lbrand"><div class="lgo">' + logoHtml() + '</div><div class="lbt"><h1>' + esc(CO) + '</h1><p>Employee Management Portal. Apply for leave, track approvals and view your leave balance in one place.</p><ul class="lfeat"><li><span>&#9998;</span>Apply for leave in a few taps</li><li><span>&#10003;</span>Track approval status</li><li><span>&#8721;</span>See CL and SL balance month by month</li></ul></div></div><div class="lform"><div class="lbox">' + b + '</div></div></div>';
   if (msg) setLm(msg, 'w');
 }
 function setLm(t, c) { var e = $('#lm'); if (e) e.innerHTML = '<div class="msg ' + (c || 'e') + '">' + esc(t) + '</div>'; }
@@ -513,7 +523,7 @@ var EN = [['home', 'My Dashboard', '&#9632;'], ['apply', 'Apply for Leave', '&#9
 var AN = [['dash', 'Dashboard', '&#9632;'], ['aapps', 'Applications', '&#9776;'], ['manual', 'Manual Leave Entry', '&#9998;'], ['emps', 'Employees', '&#9787;'], ['bal', 'Balances & Ledger', '&#8721;'], ['una', 'Unauthorized Leave', '&#9888;'], ['bonus', 'Diwali Bonus', '&#9733;'], ['ahol', 'Public Holidays', '&#9728;'], ['|'], ['set', 'Settings', '&#9881;'], ['admins', 'Administrators', '&#9823;'], ['log', 'System Log', '&#9783;'], ['pwd', 'Change Password', '&#9919;']];
 function shell() {
   var nav = S.role === 'emp' ? EN : AN;
-  $('#app').innerHTML = '<div class="top"><button class="burger" data-a="burger">&#9776;</button><div class="brand">' + esc(CO) + '<small>Leave Management</small></div><div class="who"><span class="nm">' + esc(S.user && S.user.name) + '</span><span class="chip">' + (S.role === 'emp' ? 'Employee' : 'Admin') + '</span><button class="btn sm ghost" data-a="logout">Sign out</button></div></div><div class="lay"><nav id="nav">' + nav.map(function (n) { return n[0] === '|' ? '<div class="sep"></div>' : '<a data-a="go" data-p="' + n[0] + '">' + n[2] + ' ' + n[1] + '</a>'; }).join('') + '</nav><main id="main"></main></div>';
+  $('#app').innerHTML = '<div class="top"><button class="burger" data-a="burger">&#9776;</button><div class="brand">' + esc(CO) + '<small>Employee Management</small></div><div class="who"><span class="nm">' + esc(S.user && S.user.name) + '</span><span class="chip">' + (S.role === 'emp' ? 'Employee' : 'Admin') + '</span><button class="btn sm ghost" data-a="logout">Sign out</button></div></div><div class="lay"><nav id="nav">' + nav.map(function (n) { return n[0] === '|' ? '<div class="sep"></div>' : '<a data-a="go" data-p="' + n[0] + '">' + n[2] + ' ' + n[1] + '</a>'; }).join('') + '</nav><main id="main"></main></div>';
 }
 H.burger = function () { $('#nav').classList.toggle('open'); };
 H.go = function (d) {
