@@ -312,26 +312,44 @@ function saveMedical_(f, emp, appId) {
 function sendMail_(to, subject, html) {
   try {
     if (!to) return { ok: false, error: 'No recipient' };
-    MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, body: subject, name: S_('COMPANY_NAME') });
+    const text = String(html || '')
+      .replace(/<(br|\/div|\/tr|\/p|\/h3)[^>]*>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ').replace(/&middot;/g, '-').replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/\n{3,}/g, '\n\n').trim();
+    MailApp.sendEmail({ to: to, subject: subject, htmlBody: html, body: text || subject, name: S_('COMPANY_NAME') });
     return { ok: true };
   } catch (e) {
     log_({ role: 'SYSTEM' }, 'EMAIL_FAILED', 'NOTIFICATION', '', '', '', subject + ' -> ' + to + ' : ' + e, 'FAILURE');
     return { ok: false, error: String(e) };
   }
 }
-function mailHtml_(title, rows, note, withLink) {
+function mailHtml_(title, rows, note, withLink, extraHtml) {
   const url = webAppUrl_();
-  let h = '<div style="font-family:Arial,sans-serif;max-width:620px;border:1px solid #d9e2ec;border-radius:6px;overflow:hidden">' +
-    '<div style="background:#0f3d5e;color:#fff;padding:14px 18px;font-size:16px;font-weight:bold">' + esc_(S_('COMPANY_NAME')) + ' - Leave Management</div>' +
-    '<div style="padding:18px;color:#222;font-size:14px"><h3 style="margin:0 0 12px;color:#0f3d5e">' + esc_(title) + '</h3>';
+  const font = 'font-family:Arial,Helvetica,sans-serif;';
+  let h = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>' +
+    '<body style="margin:0;padding:0;background:#f2f5f9;" bgcolor="#f2f5f9">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f2f5f9"><tr><td align="center" style="padding:12px 8px;">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d9e2ec;">' +
+    '<tr><td bgcolor="#0f3d5e" style="background:#0f3d5e;color:#ffffff;padding:14px 16px;font-size:16px;font-weight:bold;' + font + '">' +
+    esc_(S_('COMPANY_NAME')) + ' - Leave Management</td></tr>' +
+    '<tr><td style="padding:16px;color:#222222;font-size:15px;line-height:1.5;' + font + '">' +
+    '<div style="font-size:18px;font-weight:bold;color:#0f3d5e;margin:0 0 12px;">' + esc_(title) + '</div>';
   if (rows && rows.length) {
-    h += '<table style="border-collapse:collapse;width:100%">';
-    rows.forEach(r => { h += '<tr><td style="padding:6px 8px;border:1px solid #e3e8ee;background:#f6f8fa;width:35%"><b>' + esc_(r[0]) + '</b></td><td style="padding:6px 8px;border:1px solid #e3e8ee">' + esc_(r[1]) + '</td></tr>'; });
+    h += '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">';
+    rows.forEach(r => {
+      h += '<tr><td style="padding:9px 0;border-bottom:1px solid #e3e8ee;' + font + '">' +
+        '<div style="font-size:12px;color:#667788;font-weight:bold;">' + esc_(r[0]) + '</div>' +
+        '<div style="font-size:15px;color:#222222;">' + esc_(r[1]) + '</div></td></tr>';
+    });
     h += '</table>';
   }
-  if (note) h += '<p style="margin:14px 0 0">' + esc_(note) + '</p>';
-  if (withLink && url) h += '<p style="margin:16px 0 0"><a href="' + esc_(url) + '" style="background:#0f3d5e;color:#fff;padding:9px 16px;border-radius:4px;text-decoration:none">Open Leave Portal</a></p>';
-  return h + '</div></div>';
+  if (extraHtml) h += extraHtml;
+  if (note) h += '<p style="margin:14px 0 0;font-size:14px;color:#444444;">' + esc_(note) + '</p>';
+  if (withLink && url) h += '<p style="margin:18px 0 0;"><a href="' + esc_(url) + '" style="display:inline-block;background:#0f3d5e;color:#ffffff;padding:12px 22px;text-decoration:none;font-weight:bold;font-size:15px;">Open Leave Portal</a></p>';
+  h += '</td></tr></table></td></tr></table></body></html>';
+  return h;
 }
 function sendOtpMail_(to, name, otp, purpose) {
   const mins = SN_('OTP_VALID_MINUTES');
