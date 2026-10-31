@@ -1,6 +1,6 @@
 /**
  * ATTAHAR WEB-PORTAL - LEAVE MANAGEMENT WEB APP  (v1.0)
- * Code.gs
+ * FILE 1: Code.gs
  * Entry points, constants, settings, sheet helpers, logging, API gateway, setup, triggers.
  *
  * SECURITY MODEL (important)
@@ -375,7 +375,7 @@ function adminApi_() {
     getDocument: adminGetDocument_, approve: adminApprove_, reject: adminReject_, cancelApproved: adminCancelApproved_,
     manualLeave: adminManualLeave_, updateLeave: adminUpdateLeave_,
     listEmployees: adminListEmployees_, saveEmployee: adminSaveEmployee_, deleteEmployee: adminDeleteEmployee_,
-    binList: adminBinList_, binRestore: adminBinRestore_, binPurgeNow: adminBinPurgeNow_,
+    binList: adminBinList_, binRestore: adminBinRestore_, binPurgeNow: adminBinPurgeNow_, binPurgeOne: adminBinPurgeOne_,
     balanceSummary: adminBalanceSummary_, ledger: adminLedger_, adjustBalance: adminAdjustBalance_,
     listUnauthorized: adminListUnauthorized_, suggestPenalty: adminSuggestPenalty_, saveUnauthorized: adminSaveUnauthorized_,
     bonusList: adminBonusList_, bonusCompute: adminBonusCompute_, bonusSave: adminBonusSave_,
