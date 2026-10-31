@@ -342,7 +342,7 @@ td.num,th.num{white-space:nowrap;padding-right:14px}
 .tgnote{color:var(--mut);font-size:12px;margin-top:14px;line-height:1.6}
 #tgspot{position:fixed;z-index:150;pointer-events:none;display:none;border-radius:8px;box-shadow:0 0 0 9999px rgba(11,18,32,.6);outline:3px solid #f5b400;transition:left .3s,top .3s,width .3s,height .3s}
 #tgdock{position:fixed;right:12px;bottom:12px;z-index:160;width:min(340px,calc(100vw - 24px));background:rgba(11,42,67,.97);color:#fff;border-radius:12px;padding:8px 10px;box-shadow:0 12px 40px rgba(0,0,0,.45);border-top:3px solid #e0a100}
-#tgdock.top{bottom:auto;top:64px}
+#tgdock.tgup{bottom:auto;top:64px}
 .tgtop{display:flex;align-items:center;gap:6px;margin-bottom:3px}
 .tgtop b{font-size:12px}.tgtop span{color:#aab9cc;font-size:11px}
 .tgx{background:none;border:0;color:#fff;font-size:18px;cursor:pointer;line-height:1;padding:0 6px}
@@ -364,6 +364,33 @@ td.num,th.num{white-space:nowrap;padding-right:14px}
 #tgdock.min #tgchap,#tgdock.min .tgsub,#tgdock.min .tgbar,#tgdock.min .tgset,#tgdock.min .tgctl .tgb:not(.pri){display:none}
 @media(max-width:760px){#tgdock{left:8px;right:8px;width:auto}#tgdock.min{left:auto}}
 @media print{#tgdock,#tgspot{display:none!important}}
+/* ===== SYSTEM LOG: no sideways sliding ===== */
+.logt{table-layout:fixed;width:100%}
+.logt th,.logt td{overflow-wrap:anywhere;word-break:break-word;white-space:normal;font-size:12px}
+.logt th:nth-child(1){width:90px}
+.logt th:nth-child(2){width:15%}
+.logt th:nth-child(3){width:12%}
+.logt th:nth-child(4){width:80px}
+.logt th:nth-child(5){width:80px}
+.logt th:nth-child(6),.logt th:nth-child(7){width:17%}
+.logt th:nth-child(8){width:12%}
+.logt th:nth-child(9){width:112px}
+.logt td:nth-child(9) .badge{white-space:nowrap;word-break:normal;overflow-wrap:normal}
+.logt .lgv{max-height:84px;overflow:auto;font-family:Consolas,monospace;font-size:11px;line-height:1.4;background:#f6f8fb;border-radius:4px;padding:4px 6px}
+.logt .lgv:empty{display:none}
+.logw{overflow-x:hidden}
+
+/* ===== PROGRESS WINDOW ===== */
+.pgt{font-weight:600;color:var(--navy);margin-bottom:10px}
+.pgb{height:12px;background:#eceff3;border-radius:6px;overflow:hidden}
+.pgb i{display:block;height:100%;width:0;background:var(--navy2);border-radius:6px;transition:width .3s}
+.pgb i.run{background-image:linear-gradient(45deg,rgba(255,255,255,.28) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.28) 50%,rgba(255,255,255,.28) 75%,transparent 75%);background-size:22px 22px;animation:pgs .8s linear infinite}
+.pgb i.done{background:var(--ok)}.pgb i.err{background:var(--bad)}
+@keyframes pgs{to{background-position:22px 0}}
+.pgc{font-size:12px;color:var(--mut);margin:6px 0 10px}
+.pgl{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:6px;background:#fbfcfe;padding:4px 10px;font-size:13px}
+.pgl div{padding:5px 0;border-bottom:1px solid #eef1f5}.pgl div:last-child{border:0}
+.pgo{color:var(--ok)}.pge{color:var(--bad)}
 </style>
 </head>
 <body data-company="<?= company ?>">
@@ -525,7 +552,7 @@ H.logout = function (d, b) {
 };
 function begin(role, r) {
   S.role = role; S.token = r.token; S.user = role === 'emp' ? r.user : r.admin; S.cfg = r.config || {}; save(); shell();
-  if (role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
+  if (role === 'adm') call('adm', 'listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
   H.go({ p: role === 'emp' ? 'home' : 'dash' });
   if (role === 'emp') { try { sessionStorage.removeItem('kla'); } catch (e) { } showPolicy(); }
 }
@@ -881,24 +908,146 @@ H.empForm = function (d) {
   }).join('')), '<button class="btn gr" data-a="mclose">Cancel</button><button class="btn" data-a="empSave">Save</button>');
 };
 H.empSave = function (d, b) { run(b, function () { return A('saveEmployee', { id: S.editId, name: v('en'), status: v('es'), email: v('ee'), phone: v('ep'), department: v('ed'), designation: v('eg'), joiningDate: v('ej'), allowed: ['CL', 'SL', 'OTHER'].filter(function (k) { return v('al_' + k); }) }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
+
+/* ---------- step-by-step progress window ---------- */
+var RS = null;
+function runSteps(title, items, worker, opt) {
+  opt = opt || {};
+  var my = RS = { stop: false, done: false, dirty: false, dead: false, ok: 0, bad: 0, i: 0, total: items.length };
+  modal(title, '<div class="pgt" id="pgt">Starting...</div><div class="pgb"><i id="pgf"></i></div><div class="pgc" id="pgc"></div><div class="pgl" id="pgl"></div>',
+    '<button class="btn gr" data-a="rsStop">Stop</button>');
+  function el(id) { return document.getElementById(id); }
+  function line(cls, txt) { var l = el('pgl'); if (!l) return; var d = document.createElement('div'); d.className = cls; d.textContent = txt; l.appendChild(d); l.scrollTop = l.scrollHeight; }
+  function paint(running) {
+    var f = el('pgf'), c = el('pgc');
+    if (f) { f.style.width = Math.round((my.i + (running ? 0.5 : 0)) / my.total * 100) + '%'; f.className = running ? 'run' : ''; }
+    if (c) c.textContent = my.i + ' of ' + my.total + ' done' + (my.bad ? ' \u00b7 ' + my.bad + ' failed' : '');
+  }
+  function finish() {
+    my.done = true; my.dirty = my.ok > 0;
+    var t = el('pgt'), f = el('pgf'), foot = $('#modal .mf');
+    if (!t) { if (my.dirty) { my.dirty = false; reload(); } return; }   // window was closed meanwhile
+    t.textContent = (my.stop && my.i < my.total ? 'Stopped. ' : 'Finished. ') + my.ok + ' succeeded' + (my.bad ? ', ' + my.bad + ' failed' : '') + '.';
+    if (f) f.className = my.bad ? 'err' : 'done';
+    if (foot) foot.innerHTML = (opt.back ? '<button class="btn gr" data-a="rsBack">Back to Bin</button>' : '') + '<button class="btn" data-a="rsDone">Close</button>';
+  }
+  function next() {
+    if (my.stop || my.i >= my.total) return finish();
+    var it = items[my.i], t = el('pgt');
+    if (t) t.textContent = 'Working on ' + it.label + '...';
+    paint(true);
+    Promise.resolve().then(function () { return worker(it); }).then(
+      function (msg) { my.ok++; line('pgo', '\u2713 ' + it.label + (msg ? ' - ' + msg : '')); },
+      function (e) {
+        if (e && e.code === 'AUTH') { my.stop = true; my.dead = true; signOut(e.message); return; }
+        my.bad++; line('pge', '\u2717 ' + it.label + ' - ' + (e && e.message ? e.message : 'failed'));
+      }
+    ).then(function () { if (my.dead) return; my.i++; paint(false); next(); });
+  }
+  next();
+}
+H.rsStop = function () { if (RS) RS.stop = true; var t = $('#pgt'); if (t) t.textContent = 'Stopping after the current item...'; };
+H.rsDone = function () { if (RS) RS.dirty = false; closeModal(); reload(); };
+H.rsBack = function () { if (RS) RS.dirty = false; reload(); H.binOpen({}, null); };
+H.mclose = function () {
+  if (RS && !RS.done) RS.stop = true;
+  var d = RS && RS.done && RS.dirty; if (RS) RS.dirty = false;
+  closeModal(); if (d) reload();
+};
+function askType(msg, word, label) {
+  return new Promise(function (res) {
+    modal('Permanent delete', '<div class="msg e">' + msg + '</div>' + fld('Type <b>' + word + '</b> to confirm', '<input type="text" id="tcw" autocomplete="off">'),
+      '<button class="btn gr" data-a="tNo">Cancel</button><button class="btn bad" data-a="tYes">' + esc(label) + '</button>', true);
+    H.tNo = function () { closeModal(); res(false); };
+    H.tYes = function () { if (v('tcw').trim().toUpperCase() !== word) { toast('Please type ' + word + ' to confirm.', true); return; } closeModal(); res(true); };
+  });
+}
+function srv(action) { return function (it) { return call('adm', action, { id: it.id }); }; }   // not tied to the current page
+
+/* ---------- Employees page: Delete with progress ---------- */
 H.empDel = function (d) {
   ask('Move ' + d.n + ' (' + d.id + ') to the Bin? They will be blocked from logging in. You can restore them within 30 days; after that all their records are permanently deleted.', 'Yes, move to Bin', 'bad').then(function (y) {
-    if (y) run(null, function () { return A('deleteEmployee', { id: d.id }).then(function (r) { toast(r.message); reload(); }); });
+    if (!y) return;
+    runSteps('Moving to Bin', [{ id: d.id, label: d.n + ' (' + d.id + ')' }], function (it) { return srv('deleteEmployee')(it).then(function () { return 'moved to Bin'; }); });
   });
 };
+
+/* ---------- Bin ---------- */
+function binSel() { return $$('#modal .bk:checked').map(function (c) { return c.getAttribute('data-id'); }); }
+function binItems(ids) {
+  return ids.map(function (id) { var x = (S.bin || []).filter(function (b) { return b.id === id; })[0] || {}; return { id: id, label: (x.name || id) + ' (' + id + ')' }; });
+}
+function binSync() {
+  var n = binSel().length, all = $$('#modal .bk').length, a = $('#bka'), r = $('#bnR'), d = $('#bnD');
+  if (a) a.checked = all > 0 && n === all;
+  if (r) { r.disabled = !n; r.textContent = 'Restore selected' + (n ? ' (' + n + ')' : ''); }
+  if (d) { d.disabled = !n; d.textContent = 'Delete selected' + (n ? ' (' + n + ')' : ''); }
+}
+CHG.binAll = function (el) { $$('#modal .bk').forEach(function (c) { c.checked = el.checked; }); binSync(); };
+CHG.binPick = function () { binSync(); };
+function purgeWorker(it) {
+  return srv('binPurgeOne')(it).then(function (r) {
+    var c = r.counts || {};
+    return 'deleted (' + (c.applications || 0) + ' applications, ' + (c.ledger || 0) + ' ledger rows, ' + (c.documents || 0) + ' documents)';
+  });
+}
+function restoreWorker(it) { return srv('binRestore')(it).then(function () { return 'restored'; }); }
 
 H.binOpen = function (d, b) {
   run(b, function () {
     return A('binList').then(function (r) {
-      modal('Deleted employees (Bin)', '<div class="msg i">Deleted employees are kept for ' + r.days + ' days, then permanently removed.</div>' +
-        tbl(['ID', 'Name', 'Deleted', 'By', 'Days left', ''], r.list.map(function (x) {
-          return '<tr><td>' + esc(x.id) + '</td><td>' + esc(x.name) + '</td><td>' + esc(x.at) + '</td><td>' + esc(x.by) + '</td><td class="num">' + x.left + '</td><td><button class="btn sm ok" data-a="binRestore" data-id="' + esc(x.id) + '">Restore</button></td></tr>';
-        }), 'The Bin is empty.'), '<button class="btn gr" data-a="mclose">Close</button><button class="btn bad" data-a="binPurge">Remove expired now</button>');
+      S.bin = r.list;
+      var head = ['<input type="checkbox" id="bka" data-ch="binAll" title="Select all">', 'ID', 'Name', 'Deleted', 'By', 'Applications', 'Days left', ''];
+      var rows = r.list.map(function (x) {
+        return '<tr><td><input type="checkbox" class="bk" data-id="' + esc(x.id) + '" data-ch="binPick"></td><td>' + esc(x.id) + '</td><td>' + esc(x.name) + '</td><td>' + esc(x.at) + '</td><td>' + esc(x.by) +
+          '</td><td class="num">' + x.apps + '</td><td class="num">' + (x.expired ? '<span class="badge b-Inactive">Expired</span>' : (x.left === null ? '-' : x.left)) +
+          '</td><td><button class="btn sm ok" data-a="binRestore" data-id="' + esc(x.id) + '">Restore</button> <button class="btn sm bad" data-a="binDelOne" data-id="' + esc(x.id) + '">Delete</button></td></tr>';
+      });
+      var has = r.list.length > 0, exp = r.list.filter(function (x) { return x.expired; }).length;
+      modal('Deleted employees (Bin)',
+        '<div class="msg i">Deleted employees are kept for ' + r.days + ' days, then permanently removed. Tick employees to restore or delete several at once.</div>' + tbl(head, rows, 'The Bin is empty.'),
+        '<button class="btn gr" data-a="mclose">Close</button>' +
+        '<button class="btn ok" id="bnR" data-a="binRestoreSel" disabled>Restore selected</button>' +
+        '<button class="btn bad" id="bnD" data-a="binDelSel" disabled>Delete selected</button>' +
+        '<button class="btn bad" data-a="binDelAll"' + (has ? '' : ' disabled') + '>Delete all (' + r.list.length + ')</button>' +
+        '<button class="btn gr" data-a="binPurge"' + (exp ? '' : ' disabled') + '>Remove expired now' + (exp ? ' (' + exp + ')' : '') + '</button>');
+      var m = $('#modal .md'); if (m) m.style.maxWidth = '900px';
     });
   });
 };
-H.binRestore = function (d) { run(null, function () { return A('binRestore', { id: d.id }).then(function (r) { closeModal(); toast(r.message); reload(); }); }); };
-H.binPurge = function (d, b) { run(b, function () { return A('binPurgeNow').then(function (r) { toast(r.message); H.binOpen({}, null); }); }); };
+
+H.binRestore = function (d) { runSteps('Restoring employee', binItems([d.id]), restoreWorker, { back: true }); };
+H.binRestoreSel = function () {
+  var ids = binSel(); if (!ids.length) return;
+  ask('Restore ' + ids.length + ' selected employee(s) with their same IDs and records?', 'Yes, restore').then(function (y) {
+    if (y) runSteps('Restoring ' + ids.length + ' employee(s)', binItems(ids), restoreWorker, { back: true });
+  });
+};
+H.binDelOne = function (d) {
+  var it = binItems([d.id]);
+  ask('Permanently delete ' + it[0].label + '? All their applications, ledger entries, bonus records and documents are erased. This cannot be undone.', 'Yes, delete forever', 'bad').then(function (y) {
+    if (y) runSteps('Deleting permanently', it, purgeWorker, { back: true });
+  });
+};
+H.binDelSel = function () {
+  var ids = binSel(); if (!ids.length) return;
+  ask('Permanently delete ' + ids.length + ' selected employee(s) and ALL their applications, ledger entries, bonus records and documents? This cannot be undone.', 'Yes, delete selected', 'bad').then(function (y) {
+    if (y) runSteps('Deleting ' + ids.length + ' employee(s)', binItems(ids), purgeWorker, { back: true });
+  });
+};
+H.binDelAll = function () {
+  var ids = (S.bin || []).map(function (x) { return x.id; }); if (!ids.length) return;
+  askType('This permanently deletes <b>all ' + ids.length + '</b> employee(s) in the Bin, with every application, ledger entry, bonus record and document. It cannot be undone.', 'DELETE', 'Delete everything').then(function (y) {
+    if (y) runSteps('Emptying the Bin (' + ids.length + ')', binItems(ids), purgeWorker, { back: true });
+  });
+};
+H.binPurge = function () {
+  var ids = (S.bin || []).filter(function (x) { return x.expired; }).map(function (x) { return x.id; });
+  if (!ids.length) { toast('Nothing has passed the retention period yet.'); return; }
+  runSteps('Removing expired (' + ids.length + ')', binItems(ids), purgeWorker, { back: true });
+};
+
+
 function ini_(n) { return String(n || '?').trim().split(/\s+/).slice(0, 2).map(function (w) { return w.charAt(0); }).join('').toUpperCase(); }
 
 function r2_(n) { return Math.round((Number(n) || 0) * 100) / 100; }
@@ -1113,7 +1262,16 @@ H.admDel = function (d) {
 PG.log = function () {
   var f = S.lf || {};
   main('<h2>System Log</h2><div class="card"><div class="bar"><div>' + fld('Search', '<input type="text" id="lq" value="' + esc(f.q || '') + '">') + '</div><div>' + fld('Module', '<select id="lmod">' + opts(['SECURITY', 'LEAVE', 'LEDGER', 'EMPLOYEE', 'ADMIN', 'SETTINGS', 'BONUS', 'UNAUTHORIZED', 'HOLIDAY', 'NOTIFICATION', 'SYSTEM'].map(function (x) { return [x, x]; }), f.module, 'All') + '</select>') + '</div><div><button class="btn" data-a="lGo">Search</button></div></div><div id="ll" class="ld">Loading...</div><div class="hint">Showing the latest 300 matching entries. The log is append-only through the application; administrators cannot edit or delete entries here.</div></div>');
-  return A('listLog', f).then(function (l) { var ll = $('#ll'); if (!ll) return; ll.className = ''; ll.innerHTML = tbl(['Time', 'User', 'Action', 'Module', 'Record', 'Old', 'New', 'Remarks', 'Result'], l.map(function (r) { return '<tr><td>' + esc(r.at) + '</td><td>' + esc(r.user) + '<div class="hint">' + esc(r.role) + '</div></td><td>' + esc(r.action) + '</td><td>' + esc(r.module) + '</td><td>' + esc(r.rec) + '</td><td>' + esc(r.oldV) + '</td><td>' + esc(r.newV) + '</td><td>' + esc(r.remarks) + '</td><td>' + badge(r.result === 'SUCCESS' ? 'Active' : 'Inactive').replace(/>[^<]*</, '>' + esc(r.result) + '<') + '</td></tr>'; })); });
+return A('listLog', f).then(function (l) {
+  var ll = $('#ll'); if (!ll) return;
+  ll.className = 'logw';
+  ll.innerHTML = tbl(['Time', 'User', 'Action', 'Module', 'Record', 'Old', 'New', 'Remarks', 'Result'], l.map(function (r) {
+    return '<tr><td>' + esc(r.at) + '</td><td>' + esc(r.user) + '<div class="hint">' + esc(r.role) + '</div></td><td>' + esc(r.action) + '</td><td>' + esc(r.module) + '</td><td>' + esc(r.rec) +
+      '</td><td><div class="lv">' + esc(r.oldV) + '</div></td><td><div class="lgv">' + esc(r.newV) + '</div></td><td>' + esc(r.remarks) + '</td><td>' +
+      badge(r.result === 'SUCCESS' ? 'Active' : 'Inactive').replace(/>[^<]*</, '>' + esc(r.result) + '<') + '</td></tr>';
+  }), 'No log entries found.', true);
+  var t = $('#ll table'); if (t) t.classList.add('logt');
+});
 };
 H.lGo = function () { S.lf = { q: v('lq'), module: v('lmod') }; reload(); };
 PG.pwd = function () {
@@ -1273,7 +1431,7 @@ var GS = {
     [{ t: 'Run daily maintenance', x: 0 }, 'Run daily maintenance se monthly credit, lapse aur year-end expiry abhi chalta hai. Send pending reminder se pending applications ki mail abhi jati hai.', 'Run daily maintenance runs monthly credit, lapse and year-end expiry now. Send pending reminder emails the pending applications now.'],
     [{ t: 'Bonus rules' }, 'Bonus rules: Manual, Flat Rs sab ke liye, ya Flat Rs har eligible CL par. In Use wala rule Calculate eligibility me kaam aata hai.', 'Bonus rules: Manual, Flat Rs for everyone, or Flat Rs per eligible CL. The In use rule is applied in Calculate eligibility.'],
     [{ t: '+ Add rule', x: 1 }, '+ Add rule se naya bonus rule banta hai. Yeh sirf Owner ko dikhta hai.', '+ Add rule creates a new bonus rule. Only the Owner sees it.'],
-    ['#ruleName', 'Rule form me naam, type aur value bharte hain.', 'The rule form takes a name, type and value.', { p: 'form:ruleForm', k: 0 }]
+    ['#rn', 'Rule form me naam, type aur value bharte hain.', 'The rule form takes a name, type and value.', { p: 'form:ruleForm', k: 0 }]
   ],
   admins: [
     ['#main h2', 'Administrators. Jo log is portal ko chala sakte hain.', 'Administrators. The people who can run this portal.'],
@@ -1429,9 +1587,9 @@ function tgPlace() {
   if (!el) { sp.style.display = 'none'; return; }
   var r = el.getBoundingClientRect(), pad = 6, d = $('#tgdock');
   if (d && window.innerWidth > 760) {
-    d.classList.remove('top');
+    d.classList.remove('tgup');
     var q = d.getBoundingClientRect();
-    if (!(r.right < q.left || r.left > q.right || r.bottom < q.top || r.top > q.bottom)) d.classList.add('top');
+    if (!(r.right < q.left || r.left > q.right || r.bottom < q.top || r.top > q.bottom)) d.classList.add('tgup');
   }
   sp.style.display = 'block';
   sp.style.left = (r.left - pad) + 'px'; sp.style.top = (r.top - pad) + 'px';
@@ -1613,7 +1771,7 @@ PG.guide = function () {
   var st = null; try { st = JSON.parse(sessionStorage.getItem('kl') || 'null'); } catch (e) { }
   if (st && st.token && st.role) {
     S.role = st.role; S.token = st.token; S.user = st.user; S.cfg = st.cfg || {}; $('#boot').style.display = 'none'; shell();
-    if (S.role === 'adm') A('listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
+    if (S.role === 'adm') call('adm', 'listEmployees').then(function (l) { S.emps = l; }).catch(function () { });
     H.go({ p: S.role === 'emp' ? 'home' : 'dash' });
     if (S.role === 'emp') { var okp = null; try { okp = sessionStorage.getItem('kla'); } catch (e) { } if (!okp) showPolicy(); }
   } else login();
